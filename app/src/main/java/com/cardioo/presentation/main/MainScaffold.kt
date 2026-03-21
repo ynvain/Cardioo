@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.presentation.chart.ChartScreen
 import com.cardioo.presentation.readings.ReadingsScreen
+import com.cardioo.presentation.statistics.StatisticsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +58,15 @@ fun MainScaffold(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (tab == 0) "Readings" else "Chart") },
+                title = {
+                    Text(
+                        when (tab) {
+                            0 -> "Readings"
+                            1 -> "Statistics"
+                            else -> "Chart"
+                        },
+                    )
+                },
                 actions = {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(Icons.Filled.Group, contentDescription = "Accounts")
@@ -76,20 +86,20 @@ fun MainScaffold(
                         accountState.accounts
                             .filter { it.id != accountState.currentAccountId }
                             .forEach { account ->
-                            DropdownMenuItem(
-                                text = { Text(account.name) },
-                                onClick = {
-                                    vm.switchAccount(account.id)
-                                    menuExpanded = false
-                                },
-                                leadingIcon = {
-                                    AccountAvatar(
-                                        name = account.name,
-                                        background = avatarColor(account.name),
-                                    )
-                                },
-                            )
-                        }
+                                DropdownMenuItem(
+                                    text = { Text(account.name) },
+                                    onClick = {
+                                        vm.switchAccount(account.id)
+                                        menuExpanded = false
+                                    },
+                                    leadingIcon = {
+                                        AccountAvatar(
+                                            name = account.name,
+                                            background = avatarColor(account.name),
+                                        )
+                                    },
+                                )
+                            }
                         DropdownMenuItem(
                             text = { Text("Create account") },
                             onClick = {
@@ -137,19 +147,22 @@ fun MainScaffold(
                 NavigationBarItem(
                     selected = tab == 1,
                     onClick = { tab = 1 },
+                    icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
+                    label = { Text("Statistics") },
+                )
+                NavigationBarItem(
+                    selected = tab == 2,
+                    onClick = { tab = 2 },
                     icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
                     label = { Text("Chart") },
                 )
             }
         },
     ) { padding ->
-        if (tab == 0) {
-            ReadingsScreen(
-                contentPadding = padding,
-                onEdit = { onOpenEntry(it) },
-            )
-        } else {
-            ChartScreen(contentPadding = padding)
+        when (tab) {
+            0 -> ReadingsScreen(contentPadding = padding, onEdit = { onOpenEntry(it) })
+            1 -> StatisticsScreen(contentPadding = padding)
+            else -> ChartScreen(contentPadding = padding)
         }
     }
 
