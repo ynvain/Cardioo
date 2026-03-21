@@ -88,7 +88,12 @@ fun StatisticsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text("${latest.systolic}/${latest.diastolic} mmHg", style = MaterialTheme.typography.bodyLarge)
-                    Text("${latest.pulse} bpm  •  ${latest.weight} ${latest.weightUnit.displayName()}")
+                    Text(
+                        listOfNotNull(
+                            latest.pulse?.let { "$it bpm" },
+                            latest.weight?.let { "$it ${latest.weightUnit.displayName()}" },
+                        ).joinToString("  •  ").ifEmpty { "—" },
+                    )
                 }
 
                 if (state.summary.avgSystolic != null && state.summary.avgDiastolic != null) {
@@ -124,7 +129,7 @@ private suspend fun exportCsv(
             measurements.sortedBy { it.timestampEpochMillis }.forEach { m ->
                 val notesEscaped = (m.notes ?: "").replace("\"", "\"\"")
                 val row =
-                    "${m.timestampEpochMillis},${m.systolic},${m.diastolic},${m.pulse},${m.weight},${m.weightUnit.name},\"$notesEscaped\"\n"
+                    "${m.timestampEpochMillis},${m.systolic},${m.diastolic},${m.pulse ?: ""},${m.weight ?: ""},${m.weightUnit.name},\"$notesEscaped\"\n"
                 os.write(row.toByteArray())
             }
         }

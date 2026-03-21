@@ -77,5 +77,41 @@ object Migrations {
                 db.execSQL("ALTER TABLE `user_new` RENAME TO `user`")
             }
         }
-}
 
+    /**
+     * v2 -> v3
+     * - pulse and weight on health_measurement become optional (NULL allowed).
+     */
+    val MIGRATION_2_3: Migration =
+        object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `health_measurement_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `userId` INTEGER NOT NULL,
+                        `timestampEpochMillis` INTEGER NOT NULL,
+                        `systolic` INTEGER NOT NULL,
+                        `diastolic` INTEGER NOT NULL,
+                        `pulse` INTEGER,
+                        `weight` REAL,
+                        `weightUnit` TEXT NOT NULL,
+                        `notes` TEXT,
+                        FOREIGN KEY(`userId`) REFERENCES `user`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `health_measurement_new` (`id`, `userId`, `timestampEpochMillis`, `systolic`, `diastolic`, `pulse`, `weight`, `weightUnit`, `notes`)
+                    SELECT `id`, `userId`, `timestampEpochMillis`, `systolic`, `diastolic`, `pulse`, `weight`, `weightUnit`, `notes`
+                    FROM `health_measurement`
+                    """.trimIndent(),
+                )
+                db.execSQL("DROP TABLE `health_measurement`")
+                db.execSQL("ALTER TABLE `health_measurement_new` RENAME TO `health_measurement`")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_health_measurement_timestampEpochMillis` ON `health_measurement` (`timestampEpochMillis`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_health_measurement_userId` ON `health_measurement` (`userId`)")
+            }
+        }
+}

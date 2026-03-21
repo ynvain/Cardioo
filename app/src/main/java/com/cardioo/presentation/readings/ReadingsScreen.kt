@@ -114,6 +114,7 @@ private fun MeasurementCard(
     onDelete: () -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
+    val category = bpCategory(measurement.systolic, measurement.diastolic)
 
     Card(
         modifier = Modifier.clickable { onEdit() },
@@ -147,8 +148,20 @@ private fun MeasurementCard(
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("${measurement.systolic}/${measurement.diastolic} mmHg", style = MaterialTheme.typography.bodyMedium)
-                Text("${measurement.pulse} bpm", style = MaterialTheme.typography.bodyMedium)
-                Text("${measurement.weight} ${measurement.weightUnit.displayName()}", style = MaterialTheme.typography.bodyMedium)
+                Text(measurement.pulse?.let { "$it bpm" } ?: "—", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    measurement.weight?.let { "$it ${measurement.weightUnit.displayName()}" } ?: "—",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    category.label,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(PinkContainer)
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color(0xFF8A1F38),
+                )
             }
             measurement.notes?.takeIf { it.isNotBlank() }?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

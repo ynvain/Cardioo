@@ -24,9 +24,8 @@ data class HealthMeasurementEntity(
     val timestampEpochMillis: Long,
     val systolic: Int,
     val diastolic: Int,
-    val pulse: Int,
-    val weight: Double,
+    val pulse: Int?,
+    val weight: Double?,
     val weightUnit: WeightUnit,
     val notes: String?,
 )
-

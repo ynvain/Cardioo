@@ -39,7 +39,12 @@ fun ChartScreen(
     vm: ChartViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
-    val filtered = filterByRange(state.measurements, state.range)
+    val rangeFiltered = filterByRange(state.measurements, state.range)
+    val chartData = when (state.metric) {
+        ChartViewModel.Metric.Bp -> rangeFiltered
+        ChartViewModel.Metric.Pulse -> rangeFiltered.filter { it.pulse != null }
+        ChartViewModel.Metric.Weight -> rangeFiltered.filter { it.weight != null }
+    }
 
     Column(
         modifier = Modifier
@@ -69,7 +74,7 @@ fun ChartScreen(
             }
         }
 
-        if (filtered.size < 2) {
+        if (chartData.size < 2) {
             Spacer(Modifier.height(8.dp))
             Text("Add more readings to see trends.", style = MaterialTheme.typography.bodyMedium)
             return
@@ -89,11 +94,11 @@ fun ChartScreen(
                 .fillMaxWidth()
                 .height(240.dp),
             metric = state.metric,
-            measurements = filtered,
+            measurements = chartData,
         )
 
         Text(
-            "Showing ${filtered.size} readings (${state.range.name.lowercase()}).",
+            "Showing ${chartData.size} readings (${state.range.name.lowercase()}).",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -112,8 +117,8 @@ private fun SimpleLineChart(
     fun valuesFor(m: com.cardioo.domain.model.HealthMeasurement): List<Double> =
         when (metric) {
             ChartViewModel.Metric.Bp -> listOf(m.systolic.toDouble(), m.diastolic.toDouble())
-            ChartViewModel.Metric.Pulse -> listOf(m.pulse.toDouble())
-            ChartViewModel.Metric.Weight -> listOf(m.weight)
+            ChartViewModel.Metric.Pulse -> listOf(m.pulse!!.toDouble())
+            ChartViewModel.Metric.Weight -> listOf(m.weight!!)
         }
 
     val allValues = sorted.flatMap(::valuesFor)

@@ -36,7 +36,7 @@ object DatabaseModule {
     @Singleton
     fun provideDb(@ApplicationContext ctx: Context): AppDatabase =
         Room.databaseBuilder(ctx, AppDatabase::class.java, "cardioo.db")
-            .addMigrations(Migrations.MIGRATION_1_2)
+            .addMigrations(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3)
             .build()
 
     @Provides fun provideUserDao(db: AppDatabase): UserDao = db.userDao()

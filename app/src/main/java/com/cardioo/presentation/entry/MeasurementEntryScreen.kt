@@ -10,11 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +29,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -51,8 +53,19 @@ fun MeasurementEntryScreen(
     val state by vm.state.collectAsState()
     val context = LocalContext.current
 
+    val focusSystolic = remember { FocusRequester() }
+    val focusDiastolic = remember { FocusRequester() }
+    val focusPulse = remember { FocusRequester() }
+    val focusWeight = remember { FocusRequester() }
+    val focusNotes = remember { FocusRequester() }
+
     LaunchedEffect(measurementId) {
         vm.load(measurementId)
+    }
+
+    // Only auto-focus systolic on new entry; avoids stealing focus when editing an existing reading.
+    LaunchedEffect(state.loading, measurementId) {
+        if (!state.loading && measurementId == null) focusSystolic.requestFocus()
     }
 
     val dtText = rememberFormattedDateTime(state.timestampEpochMillis)
@@ -118,38 +131,68 @@ fun MeasurementEntryScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = state.systolicText,
-                    onValueChange = vm::setSystolicText,
+                    onValueChange = { new ->
+                        vm.setSystolicText(new)
+                        new.toIntOrNull()?.let { v ->
+                            if (v in 90..180) focusDiastolic.requestFocus()
+                        }
+                    },
                     label = { Text("Systolic (90-180)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusSystolic),
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = state.diastolicText,
-                    onValueChange = vm::setDiastolicText,
+                    onValueChange = { new ->
+                        vm.setDiastolicText(new)
+                        new.toIntOrNull()?.let { v ->
+                            if (v in 60..120) focusPulse.requestFocus()
+                        }
+                    },
                     label = { Text("Diastolic (60-120)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusDiastolic),
                     singleLine = true,
                 )
             }
 
             OutlinedTextField(
                 value = state.pulseText,
-                onValueChange = vm::setPulseText,
-                label = { Text("Pulse (bpm)") },
+                onValueChange = { new ->
+                    vm.setPulseText(new)
+                    if (new.isNotEmpty()) {
+                        new.toIntOrNull()?.let { v ->
+                            if (v in 40..200) focusWeight.requestFocus()
+                        }
+                    }
+                },
+                label = { Text("Pulse (optional, 40-200 bpm)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusPulse),
                 singleLine = true,
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = state.weightText,
-                    onValueChange = vm::setWeightText,
-                    label = { Text("Weight (${state.weightUnit.displayName()})") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f),
+                    onValueChange = { new ->
+                        vm.setWeightText(new)
+                        if (vm.isWeightTextCompleteForFocus(new)) {
+                            focusNotes.requestFocus()
+                        }
+                    },
+                    label = { Text("Weight (optional, ${state.weightUnit.displayName()})") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusWeight),
                     singleLine = true,
                 )
                 IconButton(onClick = vm::toggleWeightUnit) {
@@ -172,7 +215,9 @@ fun MeasurementEntryScreen(
                 value = state.notes,
                 onValueChange = vm::setNotes,
                 label = { Text("Notes (optional)") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusNotes),
                 minLines = 3,
             )
 
@@ -196,4 +241,3 @@ private fun rememberFormattedDateTime(epochMillis: Long): String {
     val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy · h:mm a")
     return formatter.format(dt)
 }
-

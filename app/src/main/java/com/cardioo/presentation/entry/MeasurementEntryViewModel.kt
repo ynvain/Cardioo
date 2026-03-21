@@ -77,8 +77,10 @@ class MeasurementEntryViewModel @Inject constructor(
                     timestampEpochMillis = m.timestampEpochMillis,
                     systolicText = m.systolic.toString(),
                     diastolicText = m.diastolic.toString(),
-                    pulseText = m.pulse.toString(),
-                    weightText = m.weight.toString(),
+                    pulseText = m.pulse?.toString().orEmpty(),
+                    weightText = m.weight?.let { w ->
+                        if (w % 1.0 == 0.0) w.toInt().toString() else w.toString()
+                    }.orEmpty(),
                     weightUnit = m.weightUnit,
                     notes = m.notes.orEmpty(),
                 )
@@ -115,6 +117,17 @@ class MeasurementEntryViewModel @Inject constructor(
         return bpCategory(s, d).label
     }
 
+    /**
+     * Used by the entry screen to auto-advance focus: only when the typed weight parses and is in the
+     * realistic kg range (same rule as save validation), so partial input like "7" does not jump.
+     */
+    fun isWeightTextCompleteForFocus(weightText: String): Boolean {
+        val w = weightText.trim().toDoubleOrNull() ?: return false
+        if (w <= 0.0) return false
+        val wKg = if (_state.value.weightUnit == WeightUnit.KG) w else poundsToKg(w)
+        return wKg in 20.0..300.0
+    }
+
     fun computedBmi(): Int? {
         val profile = _state.value.profile ?: return null
         val heightMeters =
@@ -133,17 +146,23 @@ class MeasurementEntryViewModel @Inject constructor(
     fun validate(): String? {
         val s = _state.value.systolic ?: return "Enter systolic (90-180)."
         val d = _state.value.diastolic ?: return "Enter diastolic (60-120)."
-        val p = _state.value.pulse ?: return "Enter pulse (40-200)."
-        val w = _state.value.weight ?: return "Enter weight."
 
         if (s !in 90..180) return "Systolic must be 90-180."
         if (d !in 60..120) return "Diastolic must be 60-120."
-        if (p !in 40..200) return "Pulse must be 40-200."
-        if (w <= 0.0) return "Weight must be positive."
 
-        // "Unrealistic" weight check is done in kg so the rule is consistent across units.
-        val wKg = if (_state.value.weightUnit == WeightUnit.KG) w else poundsToKg(w)
-        if (wKg !in 20.0..300.0) return "Weight looks unrealistic."
+        val pulseText = _state.value.pulseText.trim()
+        if (pulseText.isNotEmpty()) {
+            val p = _state.value.pulse ?: return "Enter a valid pulse (40-200)."
+            if (p !in 40..200) return "Pulse must be 40-200."
+        }
+
+        val weightText = _state.value.weightText.trim()
+        if (weightText.isNotEmpty()) {
+            val w = _state.value.weight ?: return "Enter a valid weight."
+            if (w <= 0.0) return "Weight must be positive."
+            val wKg = if (_state.value.weightUnit == WeightUnit.KG) w else poundsToKg(w)
+            if (wKg !in 20.0..300.0) return "Weight looks unrealistic."
+        }
 
         return null
     }
@@ -157,8 +176,8 @@ class MeasurementEntryViewModel @Inject constructor(
 
         val s = _state.value.systolic!!
         val d = _state.value.diastolic!!
-        val p = _state.value.pulse!!
-        val w = _state.value.weight!!
+        val p = _state.value.pulseText.trim().takeIf { it.isNotEmpty() }?.let { _state.value.pulse }
+        val w = _state.value.weightText.trim().takeIf { it.isNotEmpty() }?.let { _state.value.weight }
 
         viewModelScope.launch {
             _state.update { it.copy(saving = true, error = null) }
