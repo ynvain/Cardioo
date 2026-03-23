@@ -39,7 +39,6 @@ import com.cardioo.presentation.util.formatLocalizedDateTime
 import com.cardioo.presentation.util.weightUnitString
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatisticsScreen(
     contentPadding: PaddingValues,

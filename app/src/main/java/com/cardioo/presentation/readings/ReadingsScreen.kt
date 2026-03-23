@@ -53,7 +53,6 @@ import com.cardioo.presentation.util.formatLocalizedDateTime
 import com.cardioo.presentation.util.localizeBpCategory
 import com.cardioo.presentation.util.weightUnitString
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ReadingsScreen(
@@ -107,7 +106,6 @@ fun ReadingsScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MeasurementCard(
     measurement: HealthMeasurement,

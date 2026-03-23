@@ -33,7 +33,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ChartScreen(
     contentPadding: PaddingValues,
@@ -205,7 +204,6 @@ private fun SimpleLineChart(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 private fun filterByRange(
     measurements: List<com.cardioo.domain.model.HealthMeasurement>,
     range: ChartViewModel.Range,
