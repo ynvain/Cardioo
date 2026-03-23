@@ -1,7 +1,9 @@
 package com.cardioo.presentation.onboarding
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cardioo.R
 import com.cardioo.domain.model.Gender
 import com.cardioo.domain.model.HeightUnit
 import com.cardioo.domain.model.UserProfile
@@ -9,6 +11,7 @@ import com.cardioo.domain.model.WeightUnit
 import com.cardioo.domain.model.toggle
 import com.cardioo.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -18,6 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val userRepository: UserRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(State())
@@ -45,11 +49,11 @@ class OnboardingViewModel @Inject constructor(
         val height = _state.value.heightText.toDoubleOrNull()
         val name = _state.value.name.trim()
         if (name.isBlank()) {
-            _state.update { it.copy(error = "Account name is required.") }
+            _state.update { it.copy(error = context.getString(R.string.error_account_name_required)) }
             return
         }
         if (height == null || height <= 0.0) {
-            _state.update { it.copy(error = "Height is required.") }
+            _state.update { it.copy(error = context.getString(R.string.error_height_required)) }
             return
         }
 
@@ -70,4 +74,3 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 }
-

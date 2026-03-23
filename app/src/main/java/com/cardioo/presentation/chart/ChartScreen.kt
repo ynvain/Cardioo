@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -25,8 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
 import com.cardioo.presentation.theme.PinkPrimary
 import java.time.Instant
 import java.time.ZoneId
@@ -46,6 +47,11 @@ fun ChartScreen(
         ChartViewModel.Metric.Weight -> rangeFiltered.filter { it.weight != null }
     }
 
+    val periodLabel = stringResource(
+        if (state.range == ChartViewModel.Range.Weekly) R.string.chart_period_weekly
+        else R.string.chart_period_monthly,
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,37 +61,64 @@ fun ChartScreen(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(onClick = { vm.setMetric(ChartViewModel.Metric.Bp) }) {
-                Text(if (state.metric == ChartViewModel.Metric.Bp) "BP ✓" else "BP")
+                Text(
+                    stringResource(
+                        if (state.metric == ChartViewModel.Metric.Bp) R.string.chart_metric_bp_selected
+                        else R.string.chart_metric_bp,
+                    ),
+                )
             }
             OutlinedButton(onClick = { vm.setMetric(ChartViewModel.Metric.Pulse) }) {
-                Text(if (state.metric == ChartViewModel.Metric.Pulse) "Pulse ✓" else "Pulse")
+                Text(
+                    stringResource(
+                        if (state.metric == ChartViewModel.Metric.Pulse) R.string.chart_metric_pulse_selected
+                        else R.string.chart_metric_pulse,
+                    ),
+                )
             }
             OutlinedButton(onClick = { vm.setMetric(ChartViewModel.Metric.Weight) }) {
-                Text(if (state.metric == ChartViewModel.Metric.Weight) "Weight ✓" else "Weight")
+                Text(
+                    stringResource(
+                        if (state.metric == ChartViewModel.Metric.Weight) R.string.chart_metric_weight_selected
+                        else R.string.chart_metric_weight,
+                    ),
+                )
             }
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Weekly) }) {
-                Text(if (state.range == ChartViewModel.Range.Weekly) "Weekly ✓" else "Weekly")
+                Text(
+                    stringResource(
+                        if (state.range == ChartViewModel.Range.Weekly) R.string.chart_range_weekly_selected
+                        else R.string.chart_range_weekly,
+                    ),
+                )
             }
             OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Monthly) }) {
-                Text(if (state.range == ChartViewModel.Range.Monthly) "Monthly ✓" else "Monthly")
+                Text(
+                    stringResource(
+                        if (state.range == ChartViewModel.Range.Monthly) R.string.chart_range_monthly_selected
+                        else R.string.chart_range_monthly,
+                    ),
+                )
             }
         }
 
         if (chartData.size < 2) {
             Spacer(Modifier.height(8.dp))
-            Text("Add more readings to see trends.", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.chart_empty_hint), style = MaterialTheme.typography.bodyMedium)
             return
         }
 
         Text(
-            when (state.metric) {
-                ChartViewModel.Metric.Bp -> "Systolic/Diastolic over time"
-                ChartViewModel.Metric.Pulse -> "Pulse over time"
-                ChartViewModel.Metric.Weight -> "Weight over time"
-            },
+            stringResource(
+                when (state.metric) {
+                    ChartViewModel.Metric.Bp -> R.string.chart_title_bp
+                    ChartViewModel.Metric.Pulse -> R.string.chart_title_pulse
+                    ChartViewModel.Metric.Weight -> R.string.chart_title_weight
+                },
+            ),
             style = MaterialTheme.typography.titleMedium,
         )
 
@@ -98,7 +131,7 @@ fun ChartScreen(
         )
 
         Text(
-            "Showing ${chartData.size} readings (${state.range.name.lowercase()}).",
+            stringResource(R.string.chart_showing_count, chartData.size, periodLabel),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -146,7 +179,6 @@ private fun SimpleLineChart(
             return bottom - (bottom - top) * t
         }
 
-        // axis baseline
         drawLine(
             color = Color.Cyan,
             start = Offset(left, bottom),
@@ -182,4 +214,3 @@ private fun filterByRange(
     val cutoff = ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
     return measurements.filter { it.timestampEpochMillis >= cutoff }
 }
-

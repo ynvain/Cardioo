@@ -1,5 +1,6 @@
 package com.cardioo.presentation.entry
 
+
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
@@ -34,14 +35,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.cardioo.domain.model.displayName
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.cardioo.presentation.util.formatLocalizedDate
+import com.cardioo.presentation.util.formatLocalizedTime
+import com.cardioo.presentation.util.localizeBpCategory
+import com.cardioo.presentation.util.weightUnitString
 import java.util.Calendar
+import com.cardioo.R
+import com.cardioo.domain.model.BpCategory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,22 +67,31 @@ fun MeasurementEntryScreen(
         vm.load(measurementId)
     }
 
-    // Only auto-focus systolic on new entry; avoids stealing focus when editing an existing reading.
     LaunchedEffect(state.loading, measurementId) {
         if (!state.loading && measurementId == null) focusSystolic.requestFocus()
     }
 
-    val dtText = rememberFormattedDateTime(state.timestampEpochMillis)
+    val datePart = remember(state.timestampEpochMillis) { formatLocalizedDate(state.timestampEpochMillis) }
+    val timePart = remember(state.timestampEpochMillis) { formatLocalizedTime(state.timestampEpochMillis) }
     val bpCategory = vm.computedBpCategory()
     val bmi = vm.computedBmi()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (measurementId == null) "Add reading" else "Edit reading") },
+                title = {
+                    Text(
+                        stringResource(
+                            if (measurementId == null) R.string.title_add_reading else R.string.title_edit_reading,
+                        ),
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onDone) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back),
+                        )
                     }
                 },
             )
@@ -108,7 +121,7 @@ fun MeasurementEntryScreen(
                             cal.get(Calendar.DAY_OF_MONTH),
                         ).show()
                     },
-                ) { Text(dtText.substringBefore(" · ")) }
+                ) { Text(datePart) }
 
                 OutlinedButton(
                     onClick = {
@@ -125,7 +138,7 @@ fun MeasurementEntryScreen(
                             false,
                         ).show()
                     },
-                ) { Text(dtText.substringAfter(" · ")) }
+                ) { Text(timePart) }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -137,7 +150,7 @@ fun MeasurementEntryScreen(
                             if (v in 90..180) focusDiastolic.requestFocus()
                         }
                     },
-                    label = { Text("Systolic (90-180)") },
+                    label = { Text(stringResource(R.string.label_systolic)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
                         .weight(1f)
@@ -152,7 +165,7 @@ fun MeasurementEntryScreen(
                             if (v in 60..120) focusPulse.requestFocus()
                         }
                     },
-                    label = { Text("Diastolic (60-120)") },
+                    label = { Text(stringResource(R.string.label_diastolic)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
                         .weight(1f)
@@ -171,7 +184,7 @@ fun MeasurementEntryScreen(
                         }
                     }
                 },
-                label = { Text("Pulse (optional, 40-200 bpm)") },
+                label = { Text(stringResource(R.string.label_pulse_optional)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,7 +201,14 @@ fun MeasurementEntryScreen(
                             focusNotes.requestFocus()
                         }
                     },
-                    label = { Text("Weight (optional, ${state.weightUnit.displayName()})") },
+                    label = {
+                        Text(
+                            stringResource(
+                                R.string.label_weight_optional,
+                                weightUnitString(state.weightUnit),
+                            ),
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier
                         .weight(1f)
@@ -196,25 +216,31 @@ fun MeasurementEntryScreen(
                     singleLine = true,
                 )
                 IconButton(onClick = vm::toggleWeightUnit) {
-                    Icon(Icons.Filled.SwapHoriz, contentDescription = "Toggle weight unit")
+                    Icon(
+                        Icons.Filled.SwapHoriz,
+                        contentDescription = stringResource(R.string.cd_toggle_weight_unit),
+                    )
                 }
             }
 
-            bpCategory?.let {
-                Text("BP category: $it", style = MaterialTheme.typography.bodyMedium)
+            bpCategory?.let { cat ->
+                Text(
+                    stringResource(R.string.bp_category_format, localizeBpCategory(cat)),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
-            bmi?.let {
-                Text("BMI: $it", style = MaterialTheme.typography.bodyMedium)
+            bmi?.let { value ->
+                Text(stringResource(R.string.bmi_format, value), style = MaterialTheme.typography.bodyMedium)
             } ?: run {
                 if (state.profile == null) {
-                    Text("BMI: Set your height in Settings.", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.bmi_set_height_hint), style = MaterialTheme.typography.bodySmall)
                 }
             }
 
             OutlinedTextField(
                 value = state.notes,
                 onValueChange = vm::setNotes,
-                label = { Text("Notes (optional)") },
+                label = { Text(stringResource(R.string.label_notes_optional)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusNotes),
@@ -229,15 +255,8 @@ fun MeasurementEntryScreen(
                 enabled = !state.saving,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (state.saving) "Saving..." else "Save")
+                Text(stringResource(if (state.saving) R.string.state_saving else R.string.action_save))
             }
         }
     }
-}
-
-@Composable
-private fun rememberFormattedDateTime(epochMillis: Long): String {
-    val dt = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault())
-    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy · h:mm a")
-    return formatter.format(dt)
 }

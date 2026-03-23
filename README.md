@@ -53,3 +53,14 @@ If you see a Gradle/JDK error:
 - No runtime permissions are required (manual entry only).
 - CSV export uses the system document picker, so the user chooses the destination.
 
+## Localization (English + Russian)
+- Default strings live in `app/src/main/res/values/strings.xml` (English).
+- Russian translations are in `app/src/main/res/values-ru/strings.xml`.
+- Android picks `values-ru` when the **system language is Russian**; all other locales use the default `values/` (English).
+- **No `AndroidManifest` changes are required** for automatic locale resolution.
+
+### How to test
+1. **English (default):** set the emulator/device language to any non-Russian locale (e.g. US English) and open the app — UI should be English.
+2. **Russian:** Settings → System → Languages → add **Русский** and move it to the top (or set as primary), then reopen the app — UI should be Russian.
+3. **CSV column header** (`csv_header`) is marked `translatable="false"` so export stays compatible with spreadsheets.
+

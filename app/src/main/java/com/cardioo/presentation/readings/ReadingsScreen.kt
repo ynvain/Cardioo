@@ -42,15 +42,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
 import com.cardioo.domain.model.HealthMeasurement
 import com.cardioo.domain.model.bpCategory
-import com.cardioo.domain.model.displayName
 import com.cardioo.presentation.theme.PinkContainer
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.cardioo.presentation.util.formatLocalizedDateTime
+import com.cardioo.presentation.util.localizeBpCategory
+import com.cardioo.presentation.util.weightUnitString
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterialApi::class)
@@ -124,22 +125,22 @@ private fun MeasurementCard(
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    formatDateTime(measurement.timestampEpochMillis),
+                    formatLocalizedDateTime(measurement.timestampEpochMillis),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.weight(1f))
                 Box {
                     IconButton(onClick = { menu = true }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "Menu")
+                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.cd_measurement_menu))
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                         DropdownMenuItem(
-                            text = { Text("Edit") },
+                            text = { Text(stringResource(R.string.action_edit)) },
                             onClick = { menu = false; onEdit() },
                         )
                         DropdownMenuItem(
-                            text = { Text("Delete") },
+                            text = { Text(stringResource(R.string.action_delete)) },
                             onClick = { menu = false; onDelete() },
                         )
                     }
@@ -147,14 +148,27 @@ private fun MeasurementCard(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("${measurement.systolic}/${measurement.diastolic} mmHg", style = MaterialTheme.typography.bodyMedium)
-                Text(measurement.pulse?.let { "$it bpm" } ?: "—", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    measurement.weight?.let { "$it ${measurement.weightUnit.displayName()}" } ?: "—",
+                    stringResource(R.string.format_bp_mmhg, measurement.systolic, measurement.diastolic),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    category.label,
+                    measurement.pulse?.let { stringResource(R.string.format_pulse_bpm, it) }
+                        ?: stringResource(R.string.value_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    measurement.weight?.let {
+                        stringResource(
+                            R.string.format_weight_with_unit,
+                            it.toString(),
+                            weightUnitString(measurement.weightUnit),
+                        )
+                    } ?: stringResource(R.string.value_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    localizeBpCategory(category),
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
                         .background(PinkContainer)
@@ -169,11 +183,3 @@ private fun MeasurementCard(
         }
     }
 }
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun formatDateTime(epochMillis: Long): String {
-    val dt = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault())
-    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy · h:mm a")
-    return formatter.format(dt)
-}
-

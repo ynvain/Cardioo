@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.UploadFile
@@ -29,14 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
 import com.cardioo.domain.model.HealthMeasurement
-import com.cardioo.domain.model.displayName
+import com.cardioo.presentation.util.formatLocalizedDateTime
+import com.cardioo.presentation.util.weightUnitString
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -47,14 +48,17 @@ fun StatisticsScreen(
     val state by vm.state.collectAsState()
     val snack = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
 
     val exportLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
             if (uri == null) return@rememberLauncherForActivityResult
             scope.launch {
                 val ok = exportCsv(context, uri, state.measurements)
-                snack.showSnackbar(if (ok) "Exported CSV" else "Export failed")
+                snack.showSnackbar(
+                    if (ok) context.getString(R.string.export_csv_success)
+                    else context.getString(R.string.export_csv_failed),
+                )
             }
         }
 
@@ -71,50 +75,63 @@ fun StatisticsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Statistics", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.statistics_card_title), style = MaterialTheme.typography.titleMedium)
                     androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
-                    IconButton(onClick = { exportLauncher.launch("cardioo_readings.csv") }) {
-                        Icon(Icons.Filled.UploadFile, contentDescription = "Export CSV")
+                    IconButton(onClick = { exportLauncher.launch(context.getString(R.string.csv_default_filename)) }) {
+                        Icon(Icons.Filled.UploadFile, contentDescription = stringResource(R.string.cd_export_csv))
                     }
                 }
 
                 val latest = state.summary.latest
                 if (latest == null) {
-                    Text("No readings yet.", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.statistics_no_readings), style = MaterialTheme.typography.bodyMedium)
                 } else {
                     Text(
-                        formatDateTime(latest.timestampEpochMillis),
+                        formatLocalizedDateTime(latest.timestampEpochMillis),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Text("${latest.systolic}/${latest.diastolic} mmHg", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.format_bp_mmhg, latest.systolic, latest.diastolic),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                     Text(
                         listOfNotNull(
-                            latest.pulse?.let { "$it bpm" },
-                            latest.weight?.let { "$it ${latest.weightUnit.displayName()}" },
-                        ).joinToString("  •  ").ifEmpty { "—" },
+                            latest.pulse?.let { stringResource(R.string.format_pulse_bpm, it) },
+                            latest.weight?.let {
+                                stringResource(
+                                    R.string.format_weight_with_unit,
+                                    it.toString(),
+                                    weightUnitString(latest.weightUnit),
+                                )
+                            },
+                        ).joinToString(stringResource(R.string.bullet_separator)).ifEmpty { stringResource(R.string.value_empty) },
                     )
                 }
 
                 if (state.summary.avgSystolic != null && state.summary.avgDiastolic != null) {
                     Text(
-                        "Average ${state.summary.avgSystolic}/${state.summary.avgDiastolic} mmHg",
+                        stringResource(
+                            R.string.statistics_avg_bp_format,
+                            state.summary.avgSystolic!!,
+                            state.summary.avgDiastolic!!,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    Text("${state.summary.count} entries", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        pluralStringResource(
+                            R.plurals.entries_count,
+                            state.summary.count,
+                            state.summary.count,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
         }
 
         SnackbarHost(hostState = snack)
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun formatDateTime(epochMillis: Long): String {
-    val dt = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault())
-    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy · h:mm a")
-    return formatter.format(dt)
 }
 
 private suspend fun exportCsv(
@@ -124,7 +141,7 @@ private suspend fun exportCsv(
 ): Boolean {
     return try {
         context.contentResolver.openOutputStream(uri)?.use { os ->
-            val header = "timestamp,systolic,diastolic,pulse,weight,weightUnit,notes\n"
+            val header = context.getString(R.string.csv_header)
             os.write(header.toByteArray())
             measurements.sortedBy { it.timestampEpochMillis }.forEach { m ->
                 val notesEscaped = (m.notes ?: "").replace("\"", "\"\"")
@@ -138,4 +155,3 @@ private suspend fun exportCsv(
         false
     }
 }
-

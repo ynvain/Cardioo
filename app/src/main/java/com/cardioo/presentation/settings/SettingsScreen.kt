@@ -29,11 +29,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
 import com.cardioo.domain.model.Gender
-import com.cardioo.domain.model.displayName
+import com.cardioo.presentation.util.heightUnitString
+import com.cardioo.presentation.util.localizeGender
+import com.cardioo.presentation.util.weightUnitString
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -47,14 +51,15 @@ fun SettingsScreen(
     val state by vm.state.collectAsState()
     var showDobPicker by remember { mutableStateOf(false) }
     val datePickerState = androidx.compose.material3.rememberDatePickerState()
+    val optional = stringResource(R.string.label_optional)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings & Profile") },
+                title = { Text(stringResource(R.string.title_settings_profile)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -67,11 +72,11 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Profile", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_section_profile), style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(
                 value = state.name,
                 onValueChange = vm::setName,
-                label = { Text("Account name") },
+                label = { Text(stringResource(R.string.label_account_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
@@ -79,38 +84,58 @@ fun SettingsScreen(
             OutlinedTextField(
                 value = state.heightText,
                 onValueChange = vm::setHeightText,
-                label = { Text("Height (${state.heightUnit.displayName()})") },
+                label = { Text(stringResource(R.string.label_height_unit, heightUnitString(state.heightUnit))) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = vm::toggleHeightUnit) { Text("Height: ${state.heightUnit.displayName()}") }
-                OutlinedButton(onClick = vm::toggleWeightUnit) { Text("Weight: ${state.weightUnit.displayName()}") }
+                OutlinedButton(onClick = vm::toggleHeightUnit) {
+                    Text(stringResource(R.string.label_height_toggle, heightUnitString(state.heightUnit)))
+                }
+                OutlinedButton(onClick = vm::toggleWeightUnit) {
+                    Text(stringResource(R.string.label_weight_toggle, weightUnitString(state.weightUnit)))
+                }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { showDobPicker = true }) {
-                    Text("DOB: ${state.dob?.toString() ?: "Optional"}")
+                    Text(
+                        stringResource(
+                            R.string.label_dob_format,
+                            state.dob?.toString() ?: optional,
+                        ),
+                    )
                 }
                 OutlinedButton(onClick = { vm.setGender(null) }) {
-                    Text("Gender: ${state.gender?.name ?: "Optional"}")
+                    Text(
+                        stringResource(
+                            R.string.label_gender_format,
+                            state.gender?.let { localizeGender(it) } ?: optional,
+                        ),
+                    )
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(Gender.Male, Gender.Female, Gender.Other).forEach { g ->
                     OutlinedButton(onClick = { vm.setGender(if (state.gender == g) null else g) }) {
-                        Text(if (state.gender == g) "${g.name} ✓" else g.name)
+                        Text(
+                            if (state.gender == g) {
+                                localizeGender(g) + stringResource(R.string.check_mark_suffix)
+                            } else {
+                                localizeGender(g)
+                            },
+                        )
                     }
                 }
             }
 
             Spacer(Modifier.height(6.dp))
-            Text("Reminders", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleMedium)
             Text(
-                "Optional reminders can be added later without extra permissions.",
+                stringResource(R.string.settings_reminders_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -120,7 +145,9 @@ fun SettingsScreen(
                 onClick = { vm.save(onBack) },
                 enabled = !state.saving,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (state.saving) "Saving..." else "Save") }
+            ) {
+                Text(stringResource(if (state.saving) R.string.state_saving else R.string.action_save))
+            }
         }
     }
 
@@ -140,14 +167,13 @@ fun SettingsScreen(
                         vm.setDob(date)
                         showDobPicker = false
                     },
-                ) { Text("OK") }
+                ) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDobPicker = false }) { Text("Cancel") }
+                OutlinedButton(onClick = { showDobPicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             androidx.compose.material3.DatePicker(state = datePickerState)
         }
     }
 }
-

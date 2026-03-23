@@ -31,8 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
+import com.cardioo.presentation.util.heightUnitString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,10 +49,10 @@ fun AccountsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Accounts") },
+                title = { Text(stringResource(R.string.title_manage_accounts)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -66,26 +69,38 @@ fun AccountsScreen(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (account.id == state.currentId) "${account.name} (current)" else account.name,
+                            if (account.id == state.currentId) {
+                                account.name + stringResource(R.string.account_current_suffix)
+                            } else {
+                                account.name
+                            },
                             style = MaterialTheme.typography.titleMedium,
                         )
                         AccountAvatar(
                             name = account.name,
                             background = avatarColor(account.name),
                         )
-                        Text("Height: ${account.height} ${account.heightUnit.name.lowercase()}")
+                        Text(
+                            stringResource(
+                                R.string.account_height_format,
+                                account.height.toString(),
+                                heightUnitString(account.heightUnit),
+                            ),
+                        )
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            OutlinedButton(onClick = { vm.switchTo(account.id) }) { Text("Switch") }
+                            OutlinedButton(onClick = { vm.switchTo(account.id) }) {
+                                Text(stringResource(R.string.action_switch))
+                            }
                             OutlinedButton(
                                 onClick = {
                                     vm.switchTo(account.id)
                                     onEditCurrent()
                                 },
-                            ) { Text("Edit profile") }
+                            ) { Text(stringResource(R.string.action_edit_profile)) }
                             OutlinedButton(
                                 onClick = { accountPendingDeleteId = account.id },
                                 enabled = state.accounts.size > 1,
-                            ) { Text("Delete") }
+                            ) { Text(stringResource(R.string.action_delete)) }
                         }
                     }
                 }
@@ -97,9 +112,9 @@ fun AccountsScreen(
     if (accountToDelete != null) {
         AlertDialog(
             onDismissRequest = { accountPendingDeleteId = null },
-            title = { Text("Delete account") },
+            title = { Text(stringResource(R.string.title_delete_account)) },
             text = {
-                Text("Delete '${accountToDelete.name}' and all linked measurements? This cannot be undone.")
+                Text(stringResource(R.string.delete_account_message, accountToDelete.name))
             },
             confirmButton = {
                 Button(
@@ -107,10 +122,12 @@ fun AccountsScreen(
                         vm.delete(accountToDelete.id)
                         accountPendingDeleteId = null
                     },
-                ) { Text("Delete") }
+                ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { accountPendingDeleteId = null }) { Text("Cancel") }
+                TextButton(onClick = { accountPendingDeleteId = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
             },
         )
     }
@@ -121,6 +138,7 @@ private fun AccountAvatar(
     name: String,
     background: Color,
 ) {
+    val initialsFallback = stringResource(R.string.avatar_initials_fallback)
     val initials = name.trim().split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
     val contentColor = if (background.luminance() > 0.6f) Color.Black else Color.White
     androidx.compose.material3.Surface(
@@ -128,7 +146,7 @@ private fun AccountAvatar(
         shape = androidx.compose.foundation.shape.CircleShape,
     ) {
         Text(
-            text = initials.ifBlank { "A" },
+            text = initials.ifBlank { initialsFallback },
             color = contentColor,
             modifier = androidx.compose.ui.Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelMedium,
@@ -148,4 +166,3 @@ private fun avatarColor(seed: String): Color {
     val idx = kotlin.math.abs(seed.hashCode()) % palette.size
     return palette[idx]
 }
-

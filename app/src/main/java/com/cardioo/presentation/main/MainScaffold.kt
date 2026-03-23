@@ -3,7 +3,6 @@ package com.cardioo.presentation.main
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Insights
@@ -19,10 +18,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,8 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
 import com.cardioo.presentation.chart.ChartScreen
 import com.cardioo.presentation.readings.ReadingsScreen
 import com.cardioo.presentation.statistics.StatisticsScreen
@@ -53,27 +54,30 @@ fun MainScaffold(
     var createName by remember { mutableStateOf("") }
     val accountState by vm.state.collectAsState()
     val currentAccount = accountState.accounts.firstOrNull { it.id == accountState.currentAccountId }
-    val currentName = currentAccount?.name ?: "Account"
+    val defaultAccountName = stringResource(R.string.account_default_name)
+    val currentName = currentAccount?.name ?: defaultAccountName
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        when (tab) {
-                            0 -> "Readings"
-                            1 -> "Statistics"
-                            else -> "Chart"
-                        },
+                        stringResource(
+                            when (tab) {
+                                0 -> R.string.title_readings
+                                1 -> R.string.title_statistics
+                                else -> R.string.title_chart
+                            },
+                        ),
                     )
                 },
                 actions = {
                     IconButton(onClick = { menuExpanded = true }) {
-                        Icon(Icons.Filled.Group, contentDescription = "Accounts")
+                        Icon(Icons.Filled.Group, contentDescription = stringResource(R.string.cd_accounts_menu))
                     }
                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                         DropdownMenuItem(
-                            text = { Text("Current: $currentName") },
+                            text = { Text(stringResource(R.string.account_current_format, currentName)) },
                             onClick = { menuExpanded = false },
                             leadingIcon = {
                                 AccountAvatar(
@@ -82,7 +86,6 @@ fun MainScaffold(
                                 )
                             },
                         )
-                        // Show switch targets only; current account is already shown above.
                         accountState.accounts
                             .filter { it.id != accountState.currentAccountId }
                             .forEach { account ->
@@ -101,21 +104,21 @@ fun MainScaffold(
                                 )
                             }
                         DropdownMenuItem(
-                            text = { Text("Create account") },
+                            text = { Text(stringResource(R.string.menu_create_account)) },
                             onClick = {
                                 menuExpanded = false
                                 showCreateDialog = true
                             },
                         )
                         DropdownMenuItem(
-                            text = { Text("Manage accounts") },
+                            text = { Text(stringResource(R.string.menu_manage_accounts)) },
                             onClick = {
                                 menuExpanded = false
                                 onOpenManageAccounts()
                             },
                         )
                         DropdownMenuItem(
-                            text = { Text("Edit current profile") },
+                            text = { Text(stringResource(R.string.menu_edit_current_profile)) },
                             onClick = {
                                 menuExpanded = false
                                 onOpenSettings()
@@ -132,7 +135,7 @@ fun MainScaffold(
                     contentColor = Color.White,
                     onClick = { onOpenEntry(null) },
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add")
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add))
                 }
             }
         },
@@ -142,19 +145,19 @@ fun MainScaffold(
                     selected = tab == 0,
                     onClick = { tab = 0 },
                     icon = { Icon(Icons.Filled.ListAlt, contentDescription = null) },
-                    label = { Text("Readings") },
+                    label = { Text(stringResource(R.string.cd_nav_readings)) },
                 )
                 NavigationBarItem(
                     selected = tab == 1,
                     onClick = { tab = 1 },
                     icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
-                    label = { Text("Statistics") },
+                    label = { Text(stringResource(R.string.cd_nav_statistics)) },
                 )
                 NavigationBarItem(
                     selected = tab == 2,
                     onClick = { tab = 2 },
                     icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
-                    label = { Text("Chart") },
+                    label = { Text(stringResource(R.string.cd_nav_chart)) },
                 )
             }
         },
@@ -169,12 +172,12 @@ fun MainScaffold(
     if (showCreateDialog) {
         AlertDialog(
             onDismissRequest = { showCreateDialog = false },
-            title = { Text("Create account") },
+            title = { Text(stringResource(R.string.title_create_account)) },
             text = {
                 OutlinedTextField(
                     value = createName,
                     onValueChange = { createName = it },
-                    label = { Text("Account name") },
+                    label = { Text(stringResource(R.string.label_account_name)) },
                     singleLine = true,
                 )
             },
@@ -185,10 +188,10 @@ fun MainScaffold(
                         createName = ""
                         showCreateDialog = false
                     },
-                ) { Text("Create") }
+                ) { Text(stringResource(R.string.action_create)) }
             },
             dismissButton = {
-                TextButton(onClick = { showCreateDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showCreateDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -199,6 +202,7 @@ private fun AccountAvatar(
     name: String,
     background: Color,
 ) {
+    val initialsFallback = stringResource(R.string.avatar_initials_fallback)
     val initials = name.trim().split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
     val contentColor = if (background.luminance() > 0.6f) Color.Black else Color.White
     androidx.compose.material3.Surface(
@@ -206,7 +210,7 @@ private fun AccountAvatar(
         shape = androidx.compose.foundation.shape.CircleShape,
     ) {
         Text(
-            text = initials.ifBlank { "A" },
+            text = initials.ifBlank { initialsFallback },
             color = contentColor,
             modifier = androidx.compose.ui.Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelMedium,
@@ -226,4 +230,3 @@ private fun avatarColor(seed: String): Color {
     val idx = kotlin.math.abs(seed.hashCode()) % palette.size
     return palette[idx]
 }
-

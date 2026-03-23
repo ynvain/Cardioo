@@ -23,11 +23,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
 import com.cardioo.domain.model.Gender
-import com.cardioo.domain.model.displayName
+import com.cardioo.presentation.util.heightUnitString
+import com.cardioo.presentation.util.localizeGender
+import com.cardioo.presentation.util.weightUnitString
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -39,6 +43,7 @@ fun OnboardingScreen(
     vm: OnboardingViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
+    val optional = stringResource(R.string.label_optional)
 
     var showDobPicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
@@ -49,13 +54,13 @@ fun OnboardingScreen(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Welcome", style = MaterialTheme.typography.headlineMedium)
-        Text("Create your account and set up your profile.", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.onboarding_welcome_title), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.onboarding_subtitle), style = MaterialTheme.typography.bodyMedium)
 
         OutlinedTextField(
             value = state.name,
             onValueChange = vm::setName,
-            label = { Text("Account name") },
+            label = { Text(stringResource(R.string.label_account_name)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
@@ -63,20 +68,29 @@ fun OnboardingScreen(
         OutlinedTextField(
             value = state.heightText,
             onValueChange = vm::setHeightText,
-            label = { Text("Height (${state.heightUnit.displayName()})") },
+            label = { Text(stringResource(R.string.label_height_unit, heightUnitString(state.heightUnit))) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = vm::toggleHeightUnit) { Text("Height: ${state.heightUnit.displayName()}") }
-            OutlinedButton(onClick = vm::toggleWeightUnit) { Text("Weight: ${state.weightUnit.displayName()}") }
+            OutlinedButton(onClick = vm::toggleHeightUnit) {
+                Text(stringResource(R.string.label_height_toggle, heightUnitString(state.heightUnit)))
+            }
+            OutlinedButton(onClick = vm::toggleWeightUnit) {
+                Text(stringResource(R.string.label_weight_toggle, weightUnitString(state.weightUnit)))
+            }
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(onClick = { showDobPicker = true }) {
-                Text("DOB: ${state.dateOfBirth?.toString() ?: "Optional"}")
+                Text(
+                    stringResource(
+                        R.string.label_dob_format,
+                        state.dateOfBirth?.toString() ?: optional,
+                    ),
+                )
             }
             GenderChipRow(
                 selected = state.gender,
@@ -92,7 +106,7 @@ fun OnboardingScreen(
             onClick = { vm.save(onDone) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !state.saving,
-        ) { Text(if (state.saving) "Saving..." else "Continue") }
+        ) { Text(stringResource(if (state.saving) R.string.state_saving else R.string.action_continue)) }
     }
 
     if (showDobPicker) {
@@ -111,10 +125,10 @@ fun OnboardingScreen(
                         vm.setDob(date)
                         showDobPicker = false
                     },
-                ) { Text("OK") }
+                ) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDobPicker = false }) { Text("Cancel") }
+                OutlinedButton(onClick = { showDobPicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             androidx.compose.material3.DatePicker(state = datePickerState)
@@ -132,9 +146,14 @@ private fun GenderChipRow(
         listOf(Gender.Male, Gender.Female, Gender.Other).forEach { g ->
             val isSelected = selected == g
             OutlinedButton(onClick = { onSelected(if (isSelected) null else g) }) {
-                Text(g.name)
+                Text(
+                    if (isSelected) {
+                        localizeGender(g) + stringResource(R.string.check_mark_suffix)
+                    } else {
+                        localizeGender(g)
+                    },
+                )
             }
         }
     }
 }
-

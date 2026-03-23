@@ -2,6 +2,7 @@ package com.cardioo.presentation.entry
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cardioo.domain.model.BpCategory
 import com.cardioo.domain.model.HealthMeasurement
 import com.cardioo.domain.model.HeightUnit
 import com.cardioo.domain.model.UserProfile
@@ -111,10 +112,10 @@ class MeasurementEntryViewModel @Inject constructor(
         }
     }
 
-    fun computedBpCategory(): String? {
+    fun computedBpCategory(): BpCategory? {
         val s = _state.value.systolic ?: return null
         val d = _state.value.diastolic ?: return null
-        return bpCategory(s, d).label
+        return bpCategory(s, d)
     }
 
     /**
