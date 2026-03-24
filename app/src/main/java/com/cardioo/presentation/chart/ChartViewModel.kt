@@ -35,7 +35,7 @@ class ChartViewModel @Inject constructor(
     )
 
     enum class Metric { Bp, Pulse, Weight }
-    enum class Range { Weekly, Monthly }
+    enum class Range { Weekly, Monthly, SixMonths, Year }
 
     fun setMetric(v: Metric) = metric.update { v }
     fun setRange(v: Range) = range.update { v }

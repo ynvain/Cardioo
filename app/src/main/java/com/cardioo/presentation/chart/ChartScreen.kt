@@ -1,9 +1,10 @@
 package com.cardioo.presentation.chart
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,26 +13,41 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
+import com.cardioo.domain.model.HealthMeasurement
+import com.cardioo.domain.model.WeightUnit
+import com.cardioo.domain.model.kgToPounds
+import com.cardioo.domain.model.poundsToKg
 import com.cardioo.presentation.theme.PinkPrimary
+import com.cardioo.presentation.util.weightUnitString
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.pow
 
 @Composable
 fun ChartScreen(
@@ -47,9 +63,25 @@ fun ChartScreen(
     }
 
     val periodLabel = stringResource(
-        if (state.range == ChartViewModel.Range.Weekly) R.string.chart_period_weekly
-        else R.string.chart_period_monthly,
+        when (state.range) {
+            ChartViewModel.Range.Weekly -> R.string.chart_period_weekly
+            ChartViewModel.Range.Monthly -> R.string.chart_period_monthly
+            ChartViewModel.Range.SixMonths -> R.string.chart_period_six_months
+            ChartViewModel.Range.Year -> R.string.chart_period_year
+        },
     )
+
+    val weightDisplayUnit = chartData
+        .filter { it.weight != null }
+        .maxByOrNull { it.timestampEpochMillis }
+        ?.weightUnit
+        ?: WeightUnit.KG
+
+    val yAxisLabel = when (state.metric) {
+        ChartViewModel.Metric.Bp -> stringResource(R.string.chart_axis_mmhg)
+        ChartViewModel.Metric.Pulse -> stringResource(R.string.chart_axis_bpm)
+        ChartViewModel.Metric.Weight -> weightUnitString(weightDisplayUnit)
+    }
 
     Column(
         modifier = Modifier
@@ -85,7 +117,12 @@ fun ChartScreen(
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Weekly) }) {
                 Text(
                     stringResource(
@@ -99,6 +136,22 @@ fun ChartScreen(
                     stringResource(
                         if (state.range == ChartViewModel.Range.Monthly) R.string.chart_range_monthly_selected
                         else R.string.chart_range_monthly,
+                    ),
+                )
+            }
+            OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.SixMonths) }) {
+                Text(
+                    stringResource(
+                        if (state.range == ChartViewModel.Range.SixMonths) R.string.chart_range_six_months_selected
+                        else R.string.chart_range_six_months,
+                    ),
+                )
+            }
+            OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Year) }) {
+                Text(
+                    stringResource(
+                        if (state.range == ChartViewModel.Range.Year) R.string.chart_range_year_selected
+                        else R.string.chart_range_year,
                     ),
                 )
             }
@@ -121,12 +174,57 @@ fun ChartScreen(
             style = MaterialTheme.typography.titleMedium,
         )
 
+        if (state.metric == ChartViewModel.Metric.Bp) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        Modifier
+                            .size(10.dp)
+                            .background(PinkPrimary, CircleShape),
+                    )
+                    Text(
+                        stringResource(R.string.chart_legend_systolic),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        Modifier
+                            .size(10.dp)
+                            .background(Color.Cyan, CircleShape),
+                    )
+                    Text(
+                        stringResource(R.string.chart_legend_diastolic),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
         SimpleLineChart(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp),
+                .height(280.dp),
             metric = state.metric,
+            range = state.range,
             measurements = chartData,
+            weightDisplayUnit = weightDisplayUnit,
+            yAxisLabel = yAxisLabel,
+            dateAxisLabel = stringResource(R.string.chart_axis_date),
+            axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+            plotColor = MaterialTheme.colorScheme.onSurface,
         )
 
         Text(
@@ -141,16 +239,33 @@ fun ChartScreen(
 private fun SimpleLineChart(
     modifier: Modifier,
     metric: ChartViewModel.Metric,
-    measurements: List<com.cardioo.domain.model.HealthMeasurement>,
+    range: ChartViewModel.Range,
+    measurements: List<HealthMeasurement>,
+    weightDisplayUnit: WeightUnit,
+    yAxisLabel: String,
+    dateAxisLabel: String,
+    axisColor: Color,
+    gridColor: Color,
+    plotColor: Color,
 ) {
     val sorted = measurements.sortedBy { it.timestampEpochMillis }
-    val xCount = sorted.size.coerceAtLeast(2)
+    val zone = ZoneId.systemDefault()
+    val locale = Locale.getDefault()
+    val dateFormatter = dateTimeFormatterForRange(range, locale)
 
-    fun valuesFor(m: com.cardioo.domain.model.HealthMeasurement): List<Double> =
+    fun valuesFor(m: HealthMeasurement): List<Double> =
         when (metric) {
             ChartViewModel.Metric.Bp -> listOf(m.systolic.toDouble(), m.diastolic.toDouble())
             ChartViewModel.Metric.Pulse -> listOf(m.pulse!!.toDouble())
-            ChartViewModel.Metric.Weight -> listOf(m.weight!!)
+            ChartViewModel.Metric.Weight -> {
+                val w = m.weight!!
+                val v = when {
+                    m.weightUnit == weightDisplayUnit -> w
+                    m.weightUnit == WeightUnit.KG && weightDisplayUnit == WeightUnit.LB -> kgToPounds(w)
+                    else -> poundsToKg(w)
+                }
+                listOf(v)
+            }
         }
 
     val allValues = sorted.flatMap(::valuesFor)
@@ -160,30 +275,132 @@ private fun SimpleLineChart(
     val minY = minV - pad
     val maxY = maxV + pad
 
-    val stroke = Stroke(width = 5f, cap = StrokeCap.Round)
+    val minX = sorted.minOf { it.timestampEpochMillis }
+    val maxX = sorted.maxOf { it.timestampEpochMillis }
+    val rawSpan = (maxX - minX).toDouble().coerceAtLeast(86_400_000.0)
+    val xPad = rawSpan * 0.04
+    val plotMinX = minX - xPad
+    val plotMaxX = maxX + xPad
+    val xSpan = (plotMaxX - plotMinX).coerceAtLeast(1.0)
+
+    val yStep = niceStep(maxY - minY, 5)
+    var yTick = floor(minY / yStep) * yStep
+    val yTicks = buildList {
+        while (yTick <= maxY + yStep * 0.001 && size < 10) {
+            add(yTick)
+            yTick += yStep
+        }
+    }.ifEmpty { listOf(minY, maxY) }
+
+    val xTickCount = when (range) {
+        ChartViewModel.Range.Weekly -> 5
+        ChartViewModel.Range.Monthly -> 5
+        ChartViewModel.Range.SixMonths -> 6
+        ChartViewModel.Range.Year -> 6
+    }
+    val xTicksMillis = List(xTickCount) { i ->
+        val frac = if (xTickCount == 1) 0.0 else i.toDouble() / (xTickCount - 1)
+        (plotMinX + xSpan * frac).toLong()
+    }
+
+    val stroke = Stroke(width = 4f, cap = StrokeCap.Round)
+    val axisArgb = axisColor.toArgb()
 
     Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-        val left = 12f
-        val right = w - 12f
-        val top = 12f
-        val bottom = h - 12f
-
-        fun x(i: Int): Float =
-            if (xCount == 1) left else (left + (right - left) * (i.toFloat() / (xCount - 1).toFloat()))
-
-        fun y(v: Double): Float {
-            val t = ((v - minY) / (maxY - minY)).toFloat().coerceIn(0f, 1f)
-            return bottom - (bottom - top) * t
+        val densityScale = density
+        val labelPx = 11f * densityScale
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = labelPx
+            color = axisArgb
+        }
+        val paintSmall = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 10f * densityScale
+            color = axisArgb
         }
 
+        val reserveLeft = 44f * densityScale
+        val reserveBottom = 40f * densityScale
+        val reserveRight = 12f * densityScale
+        val reserveTop = 28f * densityScale
+
+        val plotLeft = reserveLeft
+        val plotRight = size.width - reserveRight
+        val plotTop = reserveTop
+        val plotBottom = size.height - reserveBottom
+        val plotW = plotRight - plotLeft
+        val plotH = plotBottom - plotTop
+
+        fun xAtMillis(millis: Long): Float {
+            val t = ((millis - plotMinX) / xSpan).toFloat().coerceIn(0f, 1f)
+            return plotLeft + plotW * t
+        }
+
+        fun yAtValue(v: Double): Float {
+            val t = ((v - minY) / (maxY - minY)).toFloat().coerceIn(0f, 1f)
+            return plotBottom - plotH * t
+        }
+
+        // Grid (horizontal)
+        for (yt in yTicks) {
+            val yy = yAtValue(yt)
+            drawLine(
+                color = gridColor,
+                start = Offset(plotLeft, yy),
+                end = Offset(plotRight, yy),
+                strokeWidth = 1f,
+            )
+        }
+        // Grid (vertical)
+        for (xm in xTicksMillis) {
+            val xx = xAtMillis(xm)
+            drawLine(
+                color = gridColor,
+                start = Offset(xx, plotTop),
+                end = Offset(xx, plotBottom),
+                strokeWidth = 1f,
+            )
+        }
+
+        // Y axis
         drawLine(
-            color = Color.Cyan,
-            start = Offset(left, bottom),
-            end = Offset(right, bottom),
+            color = axisColor,
+            start = Offset(plotLeft, plotTop),
+            end = Offset(plotLeft, plotBottom),
             strokeWidth = 2f,
         )
+        // X axis
+        drawLine(
+            color = axisColor,
+            start = Offset(plotLeft, plotBottom),
+            end = Offset(plotRight, plotBottom),
+            strokeWidth = 2f,
+        )
+
+        paint.textAlign = android.graphics.Paint.Align.RIGHT
+        for (yt in yTicks) {
+            val yy = yAtValue(yt)
+            val label = if (metric == ChartViewModel.Metric.Weight) {
+                String.format(Locale.US, "%.1f", yt)
+            } else {
+                String.format(Locale.US, "%.0f", yt)
+            }
+            drawContext.canvas.nativeCanvas.drawText(label, plotLeft - 6f * densityScale, yy + labelPx * 0.35f, paint)
+        }
+
+        paint.textAlign = android.graphics.Paint.Align.CENTER
+        for (xm in xTicksMillis) {
+            val xx = xAtMillis(xm)
+            val label = Instant.ofEpochMilli(xm).atZone(zone).format(dateFormatter)
+            drawContext.canvas.nativeCanvas.drawText(label, xx, size.height - 14f * densityScale, paintSmall)
+        }
+
+        // Y-axis unit (rotated would be ideal; short label above chart)
+        paint.textAlign = android.graphics.Paint.Align.LEFT
+        drawContext.canvas.nativeCanvas.drawText(yAxisLabel, plotLeft, 16f * densityScale, paintSmall)
+
+        // X-axis title
+        paint.textAlign = android.graphics.Paint.Align.RIGHT
+        drawContext.canvas.nativeCanvas.drawText(dateAxisLabel, plotRight, size.height - 2f * densityScale, paintSmall)
 
         val seriesCount = if (metric == ChartViewModel.Metric.Bp) 2 else 1
         val colors = listOf(PinkPrimary, Color.Cyan)
@@ -192,7 +409,7 @@ private fun SimpleLineChart(
             val path = Path()
             sorted.forEachIndexed { i, m ->
                 val v = valuesFor(m)[seriesIdx]
-                val pt = Offset(x(i), y(v))
+                val pt = Offset(xAtMillis(m.timestampEpochMillis), yAtValue(v))
                 if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
             }
             drawPath(
@@ -201,14 +418,64 @@ private fun SimpleLineChart(
                 style = stroke,
             )
         }
+
+        // Points
+        repeat(seriesCount) { seriesIdx ->
+            for (m in sorted) {
+                val v = valuesFor(m)[seriesIdx]
+                val cx = xAtMillis(m.timestampEpochMillis)
+                val cy = yAtValue(v)
+                drawCircle(
+                    color = colors[seriesIdx % colors.size],
+                    radius = 5f,
+                    center = Offset(cx, cy),
+                )
+                drawCircle(
+                    color = plotColor,
+                    radius = 5f,
+                    center = Offset(cx, cy),
+                    style = Stroke(width = 1.5f),
+                )
+            }
+        }
     }
 }
 
+private fun dateTimeFormatterForRange(range: ChartViewModel.Range, locale: Locale): DateTimeFormatter =
+    when (range) {
+        ChartViewModel.Range.Weekly,
+        ChartViewModel.Range.Monthly,
+        -> DateTimeFormatter.ofPattern("d MMM", locale)
+        ChartViewModel.Range.SixMonths,
+        ChartViewModel.Range.Year,
+        -> DateTimeFormatter.ofPattern("MMM yyyy", locale)
+    }
+
+private fun niceStep(range: Double, maxTicks: Int): Double {
+    if (range <= 0 || maxTicks < 1) return 1.0
+    val rough = range / maxTicks
+    val exp = floor(log10(rough))
+    val mag = 10.0.pow(exp)
+    val residual = rough / mag
+    val nice = when {
+        residual <= 1.0 -> 1.0
+        residual <= 2.0 -> 2.0
+        residual <= 5.0 -> 5.0
+        else -> 10.0
+    }
+    return nice * mag
+}
+
 private fun filterByRange(
-    measurements: List<com.cardioo.domain.model.HealthMeasurement>,
+    measurements: List<HealthMeasurement>,
     range: ChartViewModel.Range,
-): List<com.cardioo.domain.model.HealthMeasurement> {
-    val days = if (range == ChartViewModel.Range.Weekly) 7 else 30
-    val cutoff = ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
+): List<HealthMeasurement> {
+    val days = when (range) {
+        ChartViewModel.Range.Weekly -> 7
+        ChartViewModel.Range.Monthly -> 30
+        ChartViewModel.Range.SixMonths -> 180
+        ChartViewModel.Range.Year -> 365
+    }
+    val cutoff = java.time.ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
     return measurements.filter { it.timestampEpochMillis >= cutoff }
 }
