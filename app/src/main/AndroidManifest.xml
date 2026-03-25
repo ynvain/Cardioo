@@ -4,9 +4,9 @@
     <application
         android:name=".CardiooApp"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/cardioo"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/cardioo"
         android:supportsRtl="true"
        >
 
