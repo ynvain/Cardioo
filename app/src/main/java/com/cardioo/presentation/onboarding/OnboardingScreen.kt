@@ -143,7 +143,7 @@ private fun GenderChipRow(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf(Gender.Male, Gender.Female, Gender.Other).forEach { g ->
+        listOf(Gender.Male, Gender.Female).forEach { g ->
             val isSelected = selected == g
             OutlinedButton(onClick = { onSelected(if (isSelected) null else g) }) {
                 Text(

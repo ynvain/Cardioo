@@ -4,7 +4,7 @@ enum class WeightUnit { KG, LB }
 
 enum class HeightUnit { CM, IN }
 
-enum class Gender { Male, Female, Other, PreferNotToSay }
+enum class Gender { Male, Female}
 
 fun WeightUnit.displayName(): String = when (this) {
     WeightUnit.KG -> "kg"

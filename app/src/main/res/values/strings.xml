@@ -61,8 +61,6 @@
     <string name="bp_category_hypertension_stage2">Hypertension stage 2</string>
     <string name="gender_male">Male</string>
     <string name="gender_female">Female</string>
-    <string name="gender_other">Other</string>
-    <string name="gender_prefer_not_to_say">Prefer not to say</string>
     <string name="cd_measurement_menu">Menu</string>
     <string name="format_bp_mmhg">%1$d/%2$d mmHg</string>
     <string name="format_pulse_bpm">%1$d bpm</string>

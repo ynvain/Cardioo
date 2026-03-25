@@ -22,8 +22,6 @@ fun localizeGender(gender: Gender): String =
     when (gender) {
         Gender.Male -> stringResource(R.string.gender_male)
         Gender.Female -> stringResource(R.string.gender_female)
-        Gender.Other -> stringResource(R.string.gender_other)
-        Gender.PreferNotToSay -> stringResource(R.string.gender_prefer_not_to_say)
     }
 
 @Composable

@@ -104,7 +104,7 @@ fun SettingsScreen(
                     Text(
                         stringResource(
                             R.string.label_dob_format,
-                            state.dob?.toString() ?: optional,
+                            state.dob?.toString() ?: "",
                         ),
                     )
                 }
@@ -112,14 +112,14 @@ fun SettingsScreen(
                     Text(
                         stringResource(
                             R.string.label_gender_format,
-                            state.gender?.let { localizeGender(it) } ?: optional,
+                            state.gender?.let { localizeGender(it) } ?: "",
                         ),
                     )
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(Gender.Male, Gender.Female, Gender.Other).forEach { g ->
+                listOf(Gender.Male, Gender.Female).forEach { g ->
                     OutlinedButton(onClick = { vm.setGender(if (state.gender == g) null else g) }) {
                         Text(
                             if (state.gender == g) {
@@ -133,12 +133,6 @@ fun SettingsScreen(
             }
 
             Spacer(Modifier.height(6.dp))
-            Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.settings_reminders_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
 
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Button(

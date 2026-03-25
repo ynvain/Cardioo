@@ -60,8 +60,6 @@
     <string name="bp_category_hypertension_stage2">Гипертония 2 степени</string>
     <string name="gender_male">Мужской</string>
     <string name="gender_female">Женский</string>
-    <string name="gender_other">Другой</string>
-    <string name="gender_prefer_not_to_say">Предпочитаю не указывать</string>
     <string name="cd_measurement_menu">Меню</string>
     <string name="format_bp_mmhg">%1$d/%2$d мм рт. ст.</string>
     <string name="format_pulse_bpm">%1$d уд/мин</string>
