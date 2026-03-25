@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -35,9 +38,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,11 +67,28 @@ fun ReadingsScreen(
 ) {
     val state by vm.state.collectAsState()
     val snack = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    val hasMore = state.measurements.size < state.totalCount
 
     val pullState = rememberPullRefreshState(
         refreshing = state.isRefreshing,
         onRefresh = vm::refresh,
     )
+
+    LaunchedEffect(listState, state.totalCount, state.measurements.size, state.isLoadingMore, state.isRefreshing) {
+        snapshotFlow {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible
+        }.collect { lastVisible ->
+            val threshold = 5
+            val shouldLoad =
+                hasMore &&
+                    !state.isLoadingMore &&
+                    !state.isRefreshing &&
+                    lastVisible >= (state.measurements.size - 1 - threshold).coerceAtLeast(0)
+            if (shouldLoad) vm.loadNextPage()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -75,6 +97,7 @@ fun ReadingsScreen(
             .pullRefresh(pullState),
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -85,6 +108,22 @@ fun ReadingsScreen(
                     onEdit = { onEdit(m.id) },
                     onDelete = { vm.delete(m.id) },
                 )
+            }
+
+            if (state.isLoadingMore && !state.isRefreshing) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .size(20.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                }
             }
 
             item { Spacer(Modifier.size(72.dp)) }

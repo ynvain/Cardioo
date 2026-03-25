@@ -26,6 +26,31 @@ class MeasurementRepositoryImpl @Inject constructor(
             }
         }
 
+    override fun observeCount(): Flow<Int> =
+        session.currentAccountId.flatMapLatest { userId ->
+            if (userId == null) flowOf(0) else dao.observeCountForUser(userId)
+        }
+
+    override suspend fun getPage(
+        limit: Int,
+        beforeTimestampEpochMillis: Long?,
+        beforeId: Long?,
+    ): List<HealthMeasurement> {
+        val userId = session.currentAccountId.first() ?: return emptyList()
+        val entities =
+            if (beforeTimestampEpochMillis == null || beforeId == null) {
+                dao.getFirstPageForUser(userId, limit)
+            } else {
+                dao.getNextPageForUser(
+                    userId = userId,
+                    beforeTimestamp = beforeTimestampEpochMillis,
+                    beforeId = beforeId,
+                    limit = limit,
+                )
+            }
+        return entities.map { it.toDomain() }
+    }
+
     override suspend fun getById(id: Long): HealthMeasurement? {
         val userId = session.currentAccountId.first() ?: return null
         return dao.getByIdForUser(id, userId)?.toDomain()
