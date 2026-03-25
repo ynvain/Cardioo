@@ -145,7 +145,7 @@ private fun MeasurementCard(
                 }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Text(
                     stringResource(R.string.format_bp_mmhg, measurement.systolic, measurement.diastolic),
                     style = MaterialTheme.typography.bodyMedium,
@@ -164,15 +164,6 @@ private fun MeasurementCard(
                         )
                     } ?: stringResource(R.string.value_empty),
                     style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    localizeBpCategory(category),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(PinkContainer)
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFF8A1F38),
                 )
             }
             measurement.notes?.takeIf { it.isNotBlank() }?.let {

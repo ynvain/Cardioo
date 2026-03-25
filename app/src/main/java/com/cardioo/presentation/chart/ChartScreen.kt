@@ -121,7 +121,7 @@ fun ChartScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Weekly) }) {
                 Text(

@@ -51,7 +51,7 @@
     <string name="label_pulse_optional">Pulse (optional, 40–200 bpm)</string>
     <string name="label_weight_optional">Weight (optional, %1$s)</string>
     <string name="cd_toggle_weight_unit">Toggle weight unit</string>
-    <string name="bp_category_format">BP category: %1$s</string>
+    <string name="bp_category_format">BP category: </string>
     <string name="bmi_format">BMI: %1$d</string>
     <string name="bmi_set_height_hint">BMI: Set your height in Settings.</string>
     <string name="label_notes_optional">Notes (optional)</string>
