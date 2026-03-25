@@ -73,7 +73,10 @@ fun MainScaffold(
                 },
                 actions = {
                     IconButton(onClick = { menuExpanded = true }) {
-                        Icon(Icons.Filled.Group, contentDescription = stringResource(R.string.cd_accounts_menu))
+                        AccountAvatar(
+                            name = currentName,
+                            background = avatarColor(currentName),
+                        )
                     }
                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                         DropdownMenuItem(
