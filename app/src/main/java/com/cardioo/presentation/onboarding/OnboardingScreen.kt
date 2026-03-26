@@ -88,10 +88,13 @@ fun OnboardingScreen(
                 Text(
                     stringResource(
                         R.string.label_dob_format,
-                        state.dateOfBirth?.toString() ?: optional,
+                        state.dateOfBirth?.toString() ?: "",
                     ),
                 )
             }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             GenderChipRow(
                 selected = state.gender,
                 onSelected = vm::setGender,
