@@ -98,8 +98,8 @@ fun ReadingsScreen(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(5.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             items(state.measurements, key = { it.id }) { m ->
                 MeasurementCard(
@@ -162,7 +162,7 @@ private fun MeasurementCard(
             Column(
                 modifier = Modifier
                     .padding(start = 5.dp, top = 5.dp, end = 10.dp, bottom = 5.dp)
-                    .weight(23F),
+                    .weight(21F),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 horizontalAlignment = Alignment.End,
             ) {
@@ -199,8 +199,8 @@ private fun MeasurementCard(
             )
             Column(
                 modifier = Modifier
-                    .padding(14.dp)
-                    .weight(77F),
+                    .padding(10.dp)
+                    .weight(79F),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
