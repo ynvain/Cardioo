@@ -51,6 +51,7 @@ import java.util.Calendar
 import com.cardioo.R
 import com.cardioo.domain.model.BpCategory
 import com.cardioo.presentation.theme.PinkContainer
+import com.cardioo.presentation.util.categoryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -241,10 +242,10 @@ fun MeasurementEntryScreen(
                         localizeBpCategory(cat),
                         modifier = Modifier
                             .clip(RoundedCornerShape(999.dp))
-                            .background(PinkContainer)
+                            .background(categoryColor(cat))
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color(0xFF8A1F38),
+                        color = Color(0xFFFFFFFF),
                     )
                 }
             }

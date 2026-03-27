@@ -10,14 +10,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -35,6 +40,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,14 +53,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
+import com.cardioo.domain.model.BpCategory
 import com.cardioo.domain.model.HealthMeasurement
 import com.cardioo.domain.model.bpCategory
 import com.cardioo.presentation.theme.PinkContainer
+import com.cardioo.presentation.theme.PinkPrimary
+import com.cardioo.presentation.util.categoryColor
+import com.cardioo.presentation.util.formatLocalizedDate
 import com.cardioo.presentation.util.formatLocalizedDateTime
+import com.cardioo.presentation.util.formatLocalizedTime
 import com.cardioo.presentation.util.localizeBpCategory
 import com.cardioo.presentation.util.weightUnitString
 
@@ -151,7 +163,6 @@ private fun MeasurementCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    var menu by remember { mutableStateOf(false) }
     val category = bpCategory(measurement.systolic, measurement.diastolic)
 
     Card(
@@ -159,50 +170,49 @@ private fun MeasurementCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    formatLocalizedDateTime(measurement.timestampEpochMillis),
+                    formatLocalizedDate(measurement.timestampEpochMillis),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            Text(
+                formatLocalizedTime(measurement.timestampEpochMillis),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+        }
+            Divider(
+                color = categoryColor(category),
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(3.5.dp)
+            )
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.weight(1f))
-                Box {
-                    IconButton(onClick = { menu = true }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.cd_measurement_menu))
-                    }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.action_edit)) },
-                            onClick = { menu = false; onEdit() },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.action_delete)) },
-                            onClick = { menu = false; onDelete() },
-                        )
-                    }
-                }
+                Box(
+                    Modifier
+                        .size(15.dp)
+                        .background(categoryColor(category), CircleShape),
+                )
+
             }
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Text(
                     stringResource(R.string.format_bp_mmhg, measurement.systolic, measurement.diastolic),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    measurement.pulse?.let { stringResource(R.string.format_pulse_bpm, it) }
-                        ?: stringResource(R.string.value_empty),
-                    style = MaterialTheme.typography.bodyMedium,
+                    measurement.pulse?.toString() ?: stringResource(R.string.value_empty),
+                    style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    measurement.weight?.let {
-                        stringResource(
-                            R.string.format_weight_with_unit,
-                            it.toString(),
-                            weightUnitString(measurement.weightUnit),
-                        )
-                    } ?: stringResource(R.string.value_empty),
-                    style = MaterialTheme.typography.bodyMedium,
+                    measurement.weight?.toString() ?: stringResource(R.string.value_empty),
+                    style = MaterialTheme.typography.titleLarge,
                 )
             }
             measurement.notes?.takeIf { it.isNotBlank() }?.let {
@@ -210,4 +220,5 @@ private fun MeasurementCard(
             }
         }
     }
+}
 }

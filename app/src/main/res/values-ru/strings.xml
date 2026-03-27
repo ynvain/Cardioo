@@ -61,7 +61,7 @@
     <string name="gender_male">Мужской</string>
     <string name="gender_female">Женский</string>
     <string name="cd_measurement_menu">Меню</string>
-    <string name="format_bp_mmhg">%1$d/%2$d мм</string>
+    <string name="format_bp_mmhg">%1$d/%2$d</string>
     <string name="format_pulse_bpm">%1$d уд/мин</string>
     <string name="format_weight_with_unit">%1$s %2$s</string>
     <string name="statistics_card_title">Статистика</string>
