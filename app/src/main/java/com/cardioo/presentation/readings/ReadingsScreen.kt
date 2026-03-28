@@ -1,6 +1,5 @@
 package com.cardioo.presentation.readings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -199,47 +197,59 @@ private fun MeasurementCard(
             )
             Column(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(start = 15.dp, top = 10.dp, end = 10.dp, bottom = 5.dp)
                     .weight(79F),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(Modifier.weight(1f))
-                    Box(
-                        Modifier
-                            .size(15.dp)
-                            .background(categoryColor(category), CircleShape),
-                    )
-
+                Row(
+                    modifier = Modifier
+                        .padding(top = 10.dp, end = 10.dp, bottom = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.weight(35F),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            stringResource(
+                                R.string.format_bp_mmhg,
+                                measurement.systolic,
+                                measurement.diastolic
+                            ),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(30F),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            measurement.pulse?.toString() ?: stringResource(R.string.value_empty),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(30F),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            measurement.weight?.toString() ?: stringResource(R.string.value_empty),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
                 }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    modifier = Modifier.padding(start = 5.dp)
                 ) {
-                    Text(
-                        stringResource(
-                            R.string.format_bp_mmhg,
-                            measurement.systolic,
-                            measurement.diastolic
-                        ),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Text(
-                        measurement.pulse?.toString() ?: stringResource(R.string.value_empty),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Text(
-                        measurement.weight?.toString() ?: stringResource(R.string.value_empty),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
-                measurement.notes?.takeIf { it.isNotBlank() }?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    measurement.notes?.takeIf { it.isNotBlank() }?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
