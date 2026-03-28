@@ -39,19 +39,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cardioo.R
+import com.cardioo.presentation.util.categoryColor
 import com.cardioo.presentation.util.formatLocalizedDate
 import com.cardioo.presentation.util.formatLocalizedTime
 import com.cardioo.presentation.util.localizeBpCategory
 import com.cardioo.presentation.util.weightUnitString
 import java.util.Calendar
-import com.cardioo.R
-import com.cardioo.domain.model.BpCategory
-import com.cardioo.presentation.theme.PinkContainer
-import com.cardioo.presentation.util.categoryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +66,7 @@ fun MeasurementEntryScreen(
     val focusDiastolic = remember { FocusRequester() }
     val focusPulse = remember { FocusRequester() }
     val focusWeight = remember { FocusRequester() }
-    val focusNotes = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(measurementId) {
         vm.load(measurementId)
@@ -190,7 +189,7 @@ fun MeasurementEntryScreen(
                     vm.setPulseText(new)
                     if (new.isNotEmpty()) {
                         new.toIntOrNull()?.let { v ->
-                            if (v in 40..200) focusWeight.requestFocus()
+                            if (v in 40..200) focusManager.clearFocus()
                         }
                     }
                 },
@@ -208,7 +207,7 @@ fun MeasurementEntryScreen(
                     onValueChange = { new ->
                         vm.setWeightText(new)
                         if (vm.isWeightTextCompleteForFocus(new)) {
-                            focusNotes.requestFocus()
+                            focusManager.clearFocus()
                         }
                     },
                     label = {
@@ -236,7 +235,8 @@ fun MeasurementEntryScreen(
             bpCategory?.let { cat ->
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(
-                        stringResource((R.string.bp_category_format)), style = MaterialTheme.typography.bodyMedium,
+                        stringResource((R.string.bp_category_format)),
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
                         localizeBpCategory(cat),
@@ -250,10 +250,16 @@ fun MeasurementEntryScreen(
                 }
             }
             bmi?.let { value ->
-                Text(stringResource(R.string.bmi_format, value), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.bmi_format, value),
+                    style = MaterialTheme.typography.bodyMedium
+                )
             } ?: run {
                 if (state.profile == null) {
-                    Text(stringResource(R.string.bmi_set_height_hint), style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.bmi_set_height_hint),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
 
@@ -262,8 +268,7 @@ fun MeasurementEntryScreen(
                 onValueChange = vm::setNotes,
                 label = { Text(stringResource(R.string.label_notes_optional)) },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusNotes),
+                    .fillMaxWidth(),
                 minLines = 3,
             )
 
