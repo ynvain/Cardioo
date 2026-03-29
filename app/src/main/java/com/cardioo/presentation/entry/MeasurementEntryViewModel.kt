@@ -9,7 +9,6 @@ import com.cardioo.domain.model.UserProfile
 import com.cardioo.domain.model.WeightUnit
 import com.cardioo.domain.model.bpCategory
 import com.cardioo.domain.model.cmToMeters
-import com.cardioo.domain.model.displayName
 import com.cardioo.domain.model.inchesToMeters
 import com.cardioo.domain.model.kgToPounds
 import com.cardioo.domain.model.poundsToKg
@@ -145,11 +144,11 @@ class MeasurementEntryViewModel @Inject constructor(
     }
 
     fun validate(): String? {
-        val s = _state.value.systolic ?: return "Enter systolic (90-180)."
-        val d = _state.value.diastolic ?: return "Enter diastolic (60-120)."
+        val s = _state.value.systolic ?: return "Enter systolic (50–250)."
+        val d = _state.value.diastolic ?: return "Enter diastolic (30–150)."
 
-        if (s !in 90..180) return "Systolic must be 90-180."
-        if (d !in 60..120) return "Diastolic must be 60-120."
+        if (s !in 50..250) return "Systolic must be 50–250."
+        if (d !in 30..150) return "Diastolic must be 30–150."
 
         val pulseText = _state.value.pulseText.trim()
         if (pulseText.isNotEmpty()) {

@@ -156,7 +156,7 @@ fun MeasurementEntryScreen(
                     onValueChange = { new ->
                         vm.setSystolicText(new)
                         new.toIntOrNull()?.let { v ->
-                            if (v in 90..180) focusDiastolic.requestFocus()
+                            if (v in 50..250) focusDiastolic.requestFocus()
                         }
                     },
                     label = { Text(stringResource(R.string.label_systolic)) },
@@ -171,7 +171,7 @@ fun MeasurementEntryScreen(
                     onValueChange = { new ->
                         vm.setDiastolicText(new)
                         new.toIntOrNull()?.let { v ->
-                            if (v in 60..120) focusPulse.requestFocus()
+                            if (v in 30..150) focusPulse.requestFocus()
                         }
                     },
                     label = { Text(stringResource(R.string.label_diastolic)) },
