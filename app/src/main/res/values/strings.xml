@@ -46,8 +46,8 @@
     <string name="settings_section_profile">Profile</string>
     <string name="settings_section_reminders">Reminders</string>
     <string name="settings_reminders_hint">Optional reminders can be added later without extra permissions.</string>
-    <string name="label_systolic">Systolic (90–180)</string>
-    <string name="label_diastolic">Diastolic (60–120)</string>
+    <string name="label_systolic">Systolic (50–250)</string>
+    <string name="label_diastolic">Diastolic (30–150)</string>
     <string name="label_pulse_optional">Pulse (optional, 40–200 bpm)</string>
     <string name="label_weight_optional">Weight (optional, %1$s)</string>
     <string name="cd_toggle_weight_unit">Toggle weight unit</string>
@@ -55,10 +55,12 @@
     <string name="bmi_format">BMI: %1$d</string>
     <string name="bmi_set_height_hint">BMI: Set your height in Settings.</string>
     <string name="label_notes_optional">Notes (optional)</string>
+    <string name="bp_category_hypotension">Low (hypotension)</string>
     <string name="bp_category_normal">Normal</string>
-    <string name="bp_category_elevated">Elevated</string>
+    <string name="bp_category_elevated">Slightly elevated</string>
     <string name="bp_category_hypertension_stage1">Hypertension stage 1</string>
     <string name="bp_category_hypertension_stage2">Hypertension stage 2</string>
+    <string name="bp_category_hypertensive_crisis">Hypertensive crisis</string>
     <string name="gender_male">Male</string>
     <string name="gender_female">Female</string>
     <string name="cd_measurement_menu">Menu</string>
@@ -110,10 +112,10 @@
     <string name="csv_header" translatable="false">timestamp,systolic,diastolic,pulse,weight,weightUnit,notes\n</string>
     <string name="csv_default_filename" translatable="false">cardioo_readings.csv</string>
     <string name="error_reading_not_found">Reading not found.</string>
-    <string name="error_enter_systolic">Enter systolic (90–180).</string>
-    <string name="error_enter_diastolic">Enter diastolic (60–120).</string>
-    <string name="error_systolic_range">Systolic must be 90–180.</string>
-    <string name="error_diastolic_range">Diastolic must be 60–120.</string>
+    <string name="error_enter_systolic">Enter systolic (50–250).</string>
+    <string name="error_enter_diastolic">Enter diastolic (30–150).</string>
+    <string name="error_systolic_range">Systolic must be 50–250.</string>
+    <string name="error_diastolic_range">Diastolic must be 30–150.</string>
     <string name="error_pulse_invalid">Enter a valid pulse (40–200).</string>
     <string name="error_pulse_range">Pulse must be 40–200.</string>
     <string name="error_weight_invalid">Enter a valid weight.</string>
@@ -126,4 +128,6 @@
     <string name="unit_cm">cm</string>
     <string name="unit_in">in</string>
     <string name="avatar_initials_fallback">A</string>
+    <string name="cd_readings_delete_selected">Delete selected readings</string>
+    <string name="cd_readings_cancel_selection">Cancel selection</string>
 </resources>

@@ -11,10 +11,12 @@ import com.cardioo.domain.model.WeightUnit
 @Composable
 fun localizeBpCategory(category: BpCategory): String =
     when (category) {
+        BpCategory.Hypotension -> stringResource(R.string.bp_category_hypotension)
         BpCategory.Normal -> stringResource(R.string.bp_category_normal)
         BpCategory.Elevated -> stringResource(R.string.bp_category_elevated)
         BpCategory.HypertensionStage1 -> stringResource(R.string.bp_category_hypertension_stage1)
         BpCategory.HypertensionStage2 -> stringResource(R.string.bp_category_hypertension_stage2)
+        BpCategory.HypertensiveCrisis -> stringResource(R.string.bp_category_hypertensive_crisis)
     }
 
 @Composable
