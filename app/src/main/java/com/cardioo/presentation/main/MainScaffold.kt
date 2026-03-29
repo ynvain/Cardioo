@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material3.AlertDialog
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
 import com.cardioo.presentation.chart.ChartScreen
 import com.cardioo.presentation.readings.ReadingsScreen
+import com.cardioo.presentation.readings.ReadingsViewModel
 import com.cardioo.presentation.statistics.StatisticsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,9 +56,15 @@ fun MainScaffold(
     var showCreateDialog by remember { mutableStateOf(false) }
     var createName by remember { mutableStateOf("") }
     val accountState by vm.state.collectAsState()
+    val readingsVm: ReadingsViewModel = hiltViewModel()
+    val readingsState by readingsVm.state.collectAsState()
     val currentAccount = accountState.accounts.firstOrNull { it.id == accountState.currentAccountId }
     val defaultAccountName = stringResource(R.string.account_default_name)
     val currentName = currentAccount?.name ?: defaultAccountName
+
+    LaunchedEffect(tab) {
+        if (tab != 0) readingsVm.clearSelection()
+    }
 
     Scaffold(
         topBar = {
@@ -72,6 +81,20 @@ fun MainScaffold(
                     )
                 },
                 actions = {
+                    if (tab == 0 && readingsState.selectedIds.isNotEmpty()) {
+                        IconButton(onClick = readingsVm::clearSelection) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.cd_readings_cancel_selection),
+                            )
+                        }
+                        IconButton(onClick = readingsVm::deleteSelected) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = stringResource(R.string.cd_readings_delete_selected),
+                            )
+                        }
+                    }
                     IconButton(onClick = { menuExpanded = true }) {
                         AccountAvatar(
                             name = currentName,
@@ -166,7 +189,11 @@ fun MainScaffold(
         },
     ) { padding ->
         when (tab) {
-            0 -> ReadingsScreen(contentPadding = padding, onEdit = { onOpenEntry(it) })
+            0 -> ReadingsScreen(
+                contentPadding = padding,
+                onEdit = { onOpenEntry(it) },
+                vm = readingsVm,
+            )
             1 -> StatisticsScreen(contentPadding = padding)
             else -> ChartScreen(contentPadding = padding)
         }

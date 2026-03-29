@@ -1,6 +1,7 @@
 package com.cardioo.presentation.readings
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -36,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,6 +69,9 @@ fun ReadingsScreen(
         onRefresh = vm::refresh,
     )
 
+    // Infinite scroll: `snapshotFlow` turns LazyList scroll state into a cold Flow. We collect it
+    // inside `LaunchedEffect` so work runs in a coroutine (collect is suspending) and restarts when
+    // keys like list size change, so thresholds stay correct after loads/refreshes.
     LaunchedEffect(
         listState,
         state.totalCount,
@@ -99,11 +105,15 @@ fun ReadingsScreen(
             contentPadding = PaddingValues(5.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
+            val selectionActive = state.selectedIds.isNotEmpty()
             items(state.measurements, key = { it.id }) { m ->
                 MeasurementCard(
                     measurement = m,
+                    selected = m.id in state.selectedIds,
+                    selectionActive = selectionActive,
                     onEdit = { onEdit(m.id) },
-                    onDelete = { vm.delete(m.id) },
+                    onToggleSelect = { vm.toggleSelection(m.id) },
+                    onLongPressSelect = { vm.addToSelection(m.id) },
                 )
             }
 
@@ -145,14 +155,33 @@ fun ReadingsScreen(
 @Composable
 private fun MeasurementCard(
     measurement: HealthMeasurement,
+    selected: Boolean,
+    selectionActive: Boolean,
     onEdit: () -> Unit,
-    onDelete: () -> Unit,
+    onToggleSelect: () -> Unit,
+    onLongPressSelect: () -> Unit,
 ) {
     val category = bpCategory(measurement.systolic, measurement.diastolic)
     val currentYear = ZonedDateTime.now().year
+    val shape = RoundedCornerShape(12.dp)
 
     Card(
-        modifier = Modifier.clickable { onEdit() },
+        modifier = Modifier
+            .clip(shape)
+            .then(
+                if (selected) {
+                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape)
+                } else {
+                    Modifier
+                },
+            )
+            .combinedClickable(
+                onClick = {
+                    if (selectionActive) onToggleSelect() else onEdit()
+                },
+                onLongClick = onLongPressSelect,
+            ),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {

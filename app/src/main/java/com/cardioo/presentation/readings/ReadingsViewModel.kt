@@ -7,6 +7,7 @@ import com.cardioo.domain.model.UserProfile
 import com.cardioo.domain.usecase.DeleteMeasurement
 import com.cardioo.domain.usecase.GetMeasurementsPage
 import com.cardioo.domain.usecase.ObserveMeasurementCount
+import com.cardioo.domain.usecase.ObserveMeasurements
 import com.cardioo.domain.usecase.ObserveProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -23,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReadingsViewModel @Inject constructor(
     observeMeasurementCount: ObserveMeasurementCount,
+    observeMeasurements: ObserveMeasurements,
     observeProfile: ObserveProfile,
     private val getMeasurementsPage: GetMeasurementsPage,
     private val deleteMeasurement: DeleteMeasurement,
@@ -35,12 +37,16 @@ class ReadingsViewModel @Inject constructor(
      * We avoid OFFSET because inserting a new measurement at the top shifts offsets and can
      * re-load items that are already in memory (duplicates). Duplicates then crash LazyColumn
      * because keys must be unique.
+     *
+     * **Updates:** total count often stays the same when a row is edited, so we also observe
+     * [ObserveMeasurements] and merge fresh rows by id into the already-loaded list.
      */
     private val pageSize = 30
     private val measurements = MutableStateFlow<List<HealthMeasurement>>(emptyList())
     private val totalCount = MutableStateFlow(0)
     private val refreshing = MutableStateFlow(false)
     private val loadingMore = MutableStateFlow(false)
+    private val selectedIds = MutableStateFlow<Set<Long>>(emptySet())
     private var activeAccountId: Long? = null
 
     val state: StateFlow<State> =
@@ -50,16 +56,28 @@ class ReadingsViewModel @Inject constructor(
             totalCount,
             refreshing,
             loadingMore,
-        ) { m, profile, total, isRefreshing, isLoadingMore ->
+            selectedIds,
+        ) { args: Array<Any?> ->
+            val m = args[0] as List<HealthMeasurement>
+            val profile = args[1] as UserProfile?
+            val total = args[2] as Int
+            val isRefreshing = args[3] as Boolean
+            val isLoadingMore = args[4] as Boolean
+            val selected = args[5] as Set<Long>
+
             State(
                 measurements = m,
                 profile = profile,
                 isRefreshing = isRefreshing,
                 isLoadingMore = isLoadingMore,
                 totalCount = total,
-                summary = Summary.from(m),
+                selectedIds = selected,
             )
-        }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), State())
+        }.stateIn(
+            viewModelScope,
+            kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000),
+            State()
+        )
 
     data class State(
         val measurements: List<HealthMeasurement> = emptyList(),
@@ -67,25 +85,9 @@ class ReadingsViewModel @Inject constructor(
         val isRefreshing: Boolean = false,
         val isLoadingMore: Boolean = false,
         val totalCount: Int = 0,
-        val summary: Summary = Summary(),
+        val selectedIds: Set<Long> = emptySet(),
     )
 
-    data class Summary(
-        val latest: HealthMeasurement? = null,
-        val avgSystolic: Int? = null,
-        val avgDiastolic: Int? = null,
-        val count: Int = 0,
-    ) {
-        companion object {
-            fun from(list: List<HealthMeasurement>): Summary {
-                val latest = list.firstOrNull()
-                if (list.isEmpty()) return Summary(latest = null, count = 0)
-                val avgSys = list.map { it.systolic }.average().toInt()
-                val avgDia = list.map { it.diastolic }.average().toInt()
-                return Summary(latest = latest, avgSystolic = avgSys, avgDiastolic = avgDia, count = list.size)
-            }
-        }
-    }
 
     init {
         viewModelScope.launch {
@@ -97,6 +99,7 @@ class ReadingsViewModel @Inject constructor(
                     activeAccountId = accountId
                     measurements.value = emptyList()
                     totalCount.value = 0
+                    selectedIds.value = emptySet()
                     loadFirstPage()
                 }
         }
@@ -115,6 +118,20 @@ class ReadingsViewModel @Inject constructor(
                         prependNewestForCurrentAccount()
                     }
                 }
+        }
+
+        // When any measurement row changes (including edits where COUNT is unchanged), Room emits
+        // a new list; we refresh only the items already shown in the paginated list.
+        viewModelScope.launch {
+            observeMeasurements().collect { all ->
+                val accountId = activeAccountId ?: return@collect
+                measurements.update { cur ->
+                    if (cur.isEmpty()) return@update cur
+                    if (cur.any { it.userId != accountId }) return@update cur
+                    val byId = all.associateBy { it.id }
+                    cur.mapNotNull { m -> byId[m.id] }
+                }
+            }
         }
     }
 
@@ -155,11 +172,38 @@ class ReadingsViewModel @Inject constructor(
         }
     }
 
+    fun toggleSelection(id: Long) {
+        selectedIds.update { cur -> if (id in cur) cur - id else cur + id }
+    }
+
+    /** Long-press: enter multi-select and include this row (does not toggle off). */
+    fun addToSelection(id: Long) {
+        selectedIds.update { it + id }
+    }
+
+    fun clearSelection() {
+        selectedIds.value = emptySet()
+    }
+
+    fun deleteSelected() {
+        val ids = selectedIds.value
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            ids.forEach { deleteMeasurement(it) }
+            measurements.update { it.filter { m -> m.id !in ids } }
+            clearSelection()
+            if (measurements.value.size < totalCount.value) {
+                loadNextPage()
+            }
+        }
+    }
+
     fun delete(id: Long) {
         viewModelScope.launch {
             deleteMeasurement(id)
             // Optimistic UI: remove immediately. Count observer will reconcile.
             measurements.update { it.filterNot { m -> m.id == id } }
+            selectedIds.update { it - id }
             if (measurements.value.size < totalCount.value) {
                 // Fill gap after deletion if more exist.
                 loadNextPage()
@@ -191,4 +235,3 @@ class ReadingsViewModel @Inject constructor(
         }
     }
 }
-
