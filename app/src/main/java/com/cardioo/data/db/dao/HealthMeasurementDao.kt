@@ -1,9 +1,8 @@
 package com.cardioo.data.db.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.cardioo.data.db.entity.HealthMeasurementEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -52,7 +51,7 @@ interface HealthMeasurementDao {
     @Query("SELECT * FROM health_measurement WHERE id = :id AND userId = :userId LIMIT 1")
     suspend fun getByIdForUser(id: Long, userId: Long): HealthMeasurementEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsert(entity: HealthMeasurementEntity): Long
 
     @Query("DELETE FROM health_measurement WHERE id = :id AND userId = :userId")

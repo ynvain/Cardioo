@@ -1,9 +1,8 @@
 package com.cardioo.data.db.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.cardioo.data.db.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -18,7 +17,7 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): UserEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsert(entity: UserEntity): Long
 
     @Query("DELETE FROM user WHERE id = :id")
