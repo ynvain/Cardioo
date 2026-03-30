@@ -1,5 +1,6 @@
 package com.cardioo.presentation.chart
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -40,6 +41,7 @@ import com.cardioo.domain.model.WeightUnit
 import com.cardioo.domain.model.kgToPounds
 import com.cardioo.domain.model.poundsToKg
 import com.cardioo.presentation.theme.PinkPrimary
+import com.cardioo.presentation.util.toggleButtonBorder
 import com.cardioo.presentation.util.weightUnitString
 import java.time.Instant
 import java.time.ZoneId
@@ -83,6 +85,17 @@ fun ChartScreen(
         ChartViewModel.Metric.Weight -> weightUnitString(weightDisplayUnit)
     }
 
+
+    @Composable
+    fun toggleMetricBorder(buttonMetric: ChartViewModel.Metric): BorderStroke {
+        return toggleButtonBorder(state.metric == buttonMetric)
+    }
+
+    @Composable
+    fun toggleRangeBorder(buttonRange: ChartViewModel.Range): BorderStroke {
+        return toggleButtonBorder(state.range == buttonRange)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,27 +104,33 @@ fun ChartScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick = { vm.setMetric(ChartViewModel.Metric.Bp) }) {
+            OutlinedButton(
+                onClick = { vm.setMetric(ChartViewModel.Metric.Bp) },
+                border = toggleMetricBorder(ChartViewModel.Metric.Bp)
+            ) {
                 Text(
                     stringResource(
-                        if (state.metric == ChartViewModel.Metric.Bp) R.string.chart_metric_bp_selected
-                        else R.string.chart_metric_bp,
+                        R.string.chart_metric_bp
                     ),
                 )
             }
-            OutlinedButton(onClick = { vm.setMetric(ChartViewModel.Metric.Pulse) }) {
+            OutlinedButton(
+                onClick = { vm.setMetric(ChartViewModel.Metric.Pulse) },
+                border = toggleMetricBorder(ChartViewModel.Metric.Pulse)
+            ) {
                 Text(
                     stringResource(
-                        if (state.metric == ChartViewModel.Metric.Pulse) R.string.chart_metric_pulse_selected
-                        else R.string.chart_metric_pulse,
+                        R.string.chart_metric_pulse,
                     ),
                 )
             }
-            OutlinedButton(onClick = { vm.setMetric(ChartViewModel.Metric.Weight) }) {
+            OutlinedButton(
+                onClick = { vm.setMetric(ChartViewModel.Metric.Weight) },
+                border = toggleMetricBorder(ChartViewModel.Metric.Weight)
+            ) {
                 Text(
                     stringResource(
-                        if (state.metric == ChartViewModel.Metric.Weight) R.string.chart_metric_weight_selected
-                        else R.string.chart_metric_weight,
+                        R.string.chart_metric_weight,
                     ),
                 )
             }
@@ -123,35 +142,43 @@ fun ChartScreen(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Weekly) }) {
+            OutlinedButton(
+                onClick = { vm.setRange(ChartViewModel.Range.Weekly) },
+                border = toggleRangeBorder(ChartViewModel.Range.Weekly)
+            ) {
                 Text(
                     stringResource(
-                        if (state.range == ChartViewModel.Range.Weekly) R.string.chart_range_weekly_selected
-                        else R.string.chart_range_weekly,
+                        R.string.chart_range_weekly,
                     ),
                 )
             }
-            OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Monthly) }) {
+            OutlinedButton(
+                onClick = { vm.setRange(ChartViewModel.Range.Monthly) },
+                border = toggleRangeBorder(ChartViewModel.Range.Monthly)
+            ) {
                 Text(
                     stringResource(
-                        if (state.range == ChartViewModel.Range.Monthly) R.string.chart_range_monthly_selected
-                        else R.string.chart_range_monthly,
+                        R.string.chart_range_monthly,
                     ),
                 )
             }
-            OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.SixMonths) }) {
+            OutlinedButton(
+                onClick = { vm.setRange(ChartViewModel.Range.SixMonths) },
+                border = toggleRangeBorder(ChartViewModel.Range.SixMonths)
+            ) {
                 Text(
                     stringResource(
-                        if (state.range == ChartViewModel.Range.SixMonths) R.string.chart_range_six_months_selected
-                        else R.string.chart_range_six_months,
+                        R.string.chart_range_six_months,
                     ),
                 )
             }
-            OutlinedButton(onClick = { vm.setRange(ChartViewModel.Range.Year) }) {
+            OutlinedButton(
+                onClick = { vm.setRange(ChartViewModel.Range.Year) },
+                border = toggleRangeBorder(ChartViewModel.Range.Year)
+            ) {
                 Text(
                     stringResource(
-                        if (state.range == ChartViewModel.Range.Year) R.string.chart_range_year_selected
-                        else R.string.chart_range_year,
+                        R.string.chart_range_year,
                     ),
                 )
             }
@@ -159,7 +186,10 @@ fun ChartScreen(
 
         if (chartData.size < 2) {
             Spacer(Modifier.height(8.dp))
-            Text(stringResource(R.string.chart_empty_hint), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(R.string.chart_empty_hint),
+                style = MaterialTheme.typography.bodyMedium
+            )
             return
         }
 
@@ -261,7 +291,10 @@ private fun SimpleLineChart(
                 val w = m.weight!!
                 val v = when {
                     m.weightUnit == weightDisplayUnit -> w
-                    m.weightUnit == WeightUnit.KG && weightDisplayUnit == WeightUnit.LB -> kgToPounds(w)
+                    m.weightUnit == WeightUnit.KG && weightDisplayUnit == WeightUnit.LB -> kgToPounds(
+                        w
+                    )
+
                     else -> poundsToKg(w)
                 }
                 listOf(v)
@@ -384,23 +417,43 @@ private fun SimpleLineChart(
             } else {
                 String.format(Locale.US, "%.0f", yt)
             }
-            drawContext.canvas.nativeCanvas.drawText(label, plotLeft - 6f * densityScale, yy + labelPx * 0.35f, paint)
+            drawContext.canvas.nativeCanvas.drawText(
+                label,
+                plotLeft - 6f * densityScale,
+                yy + labelPx * 0.35f,
+                paint
+            )
         }
 
         paint.textAlign = android.graphics.Paint.Align.CENTER
         for (xm in xTicksMillis) {
             val xx = xAtMillis(xm)
             val label = Instant.ofEpochMilli(xm).atZone(zone).format(dateFormatter)
-            drawContext.canvas.nativeCanvas.drawText(label, xx, size.height - 14f * densityScale, paintSmall)
+            drawContext.canvas.nativeCanvas.drawText(
+                label,
+                xx,
+                size.height - 14f * densityScale,
+                paintSmall
+            )
         }
 
         // Y-axis unit (rotated would be ideal; short label above chart)
         paint.textAlign = android.graphics.Paint.Align.LEFT
-        drawContext.canvas.nativeCanvas.drawText(yAxisLabel, plotLeft, 16f * densityScale, paintSmall)
+        drawContext.canvas.nativeCanvas.drawText(
+            yAxisLabel,
+            plotLeft,
+            16f * densityScale,
+            paintSmall
+        )
 
         // X-axis title
         paint.textAlign = android.graphics.Paint.Align.RIGHT
-        drawContext.canvas.nativeCanvas.drawText(dateAxisLabel, plotRight, size.height - 2f * densityScale, paintSmall)
+        drawContext.canvas.nativeCanvas.drawText(
+            dateAxisLabel,
+            plotRight,
+            size.height - 2f * densityScale,
+            paintSmall
+        )
 
         val seriesCount = if (metric == ChartViewModel.Metric.Bp) 2 else 1
         val colors = listOf(PinkPrimary, Color.Cyan)
@@ -441,14 +494,18 @@ private fun SimpleLineChart(
     }
 }
 
-private fun dateTimeFormatterForRange(range: ChartViewModel.Range, locale: Locale): DateTimeFormatter =
+private fun dateTimeFormatterForRange(
+    range: ChartViewModel.Range,
+    locale: Locale
+): DateTimeFormatter =
     when (range) {
         ChartViewModel.Range.Weekly,
         ChartViewModel.Range.Monthly,
-        -> DateTimeFormatter.ofPattern("d MMM", locale)
+            -> DateTimeFormatter.ofPattern("d MMM", locale)
+
         ChartViewModel.Range.SixMonths,
         ChartViewModel.Range.Year,
-        -> DateTimeFormatter.ofPattern("MMM yyyy", locale)
+            -> DateTimeFormatter.ofPattern("MMM yyyy", locale)
     }
 
 private fun niceStep(range: Double, maxTicks: Int): Double {

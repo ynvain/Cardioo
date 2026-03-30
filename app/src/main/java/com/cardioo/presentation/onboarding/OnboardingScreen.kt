@@ -31,6 +31,7 @@ import com.cardioo.R
 import com.cardioo.domain.model.Gender
 import com.cardioo.presentation.util.heightUnitString
 import com.cardioo.presentation.util.localizeGender
+import com.cardioo.presentation.util.toggleButtonBorder
 import com.cardioo.presentation.util.weightUnitString
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -54,8 +55,14 @@ fun OnboardingScreen(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(stringResource(R.string.onboarding_welcome_title), style = MaterialTheme.typography.headlineMedium)
-        Text(stringResource(R.string.onboarding_subtitle), style = MaterialTheme.typography.bodyMedium)
+        Text(
+            stringResource(R.string.onboarding_welcome_title),
+            style = MaterialTheme.typography.headlineMedium
+        )
+        Text(
+            stringResource(R.string.onboarding_subtitle),
+            style = MaterialTheme.typography.bodyMedium
+        )
 
         OutlinedTextField(
             value = state.name,
@@ -68,7 +75,14 @@ fun OnboardingScreen(
         OutlinedTextField(
             value = state.heightText,
             onValueChange = vm::setHeightText,
-            label = { Text(stringResource(R.string.label_height_unit, heightUnitString(state.heightUnit))) },
+            label = {
+                Text(
+                    stringResource(
+                        R.string.label_height_unit,
+                        heightUnitString(state.heightUnit)
+                    )
+                )
+            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -76,10 +90,20 @@ fun OnboardingScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(onClick = vm::toggleHeightUnit) {
-                Text(stringResource(R.string.label_height_toggle, heightUnitString(state.heightUnit)))
+                Text(
+                    stringResource(
+                        R.string.label_height_toggle,
+                        heightUnitString(state.heightUnit)
+                    )
+                )
             }
             OutlinedButton(onClick = vm::toggleWeightUnit) {
-                Text(stringResource(R.string.label_weight_toggle, weightUnitString(state.weightUnit)))
+                Text(
+                    stringResource(
+                        R.string.label_weight_toggle,
+                        weightUnitString(state.weightUnit)
+                    )
+                )
             }
         }
 
@@ -131,7 +155,9 @@ fun OnboardingScreen(
                 ) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDobPicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                OutlinedButton(onClick = {
+                    showDobPicker = false
+                }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             androidx.compose.material3.DatePicker(state = datePickerState)
@@ -148,13 +174,12 @@ private fun GenderChipRow(
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(Gender.Male, Gender.Female).forEach { g ->
             val isSelected = selected == g
-            OutlinedButton(onClick = { onSelected(if (isSelected) null else g) }) {
+            OutlinedButton(
+                onClick = { onSelected(if (isSelected) null else g) },
+                border = toggleButtonBorder(isSelected)
+            ) {
                 Text(
-                    if (isSelected) {
-                        localizeGender(g) + stringResource(R.string.check_mark_suffix)
-                    } else {
-                        localizeGender(g)
-                    },
+                    localizeGender(g),
                 )
             }
         }

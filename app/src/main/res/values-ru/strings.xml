@@ -13,7 +13,6 @@
     <string name="label_optional">Необязательно</string>
     <string name="value_empty">—</string>
     <string name="bullet_separator"> • </string>
-    <string name="check_mark_suffix"> ✓</string>
     <string name="title_readings">Показания</string>
     <string name="title_statistics">Статистика</string>
     <string name="title_chart">График</string>
@@ -79,19 +78,12 @@
         <item quantity="other">%d записей</item>
     </plurals>
     <string name="chart_metric_bp">АД</string>
-    <string name="chart_metric_bp_selected">АД ✓</string>
     <string name="chart_metric_pulse">Пульс</string>
-    <string name="chart_metric_pulse_selected">Пульс ✓</string>
     <string name="chart_metric_weight">Вес</string>
-    <string name="chart_metric_weight_selected">Вес ✓</string>
     <string name="chart_range_weekly">Неделя</string>
-    <string name="chart_range_weekly_selected">Неделя ✓</string>
     <string name="chart_range_monthly">Месяц</string>
-    <string name="chart_range_monthly_selected">Месяц ✓</string>
     <string name="chart_range_six_months">6 мес.</string>
-    <string name="chart_range_six_months_selected">6 мес. ✓</string>
     <string name="chart_range_year">Год</string>
-    <string name="chart_range_year_selected">Год ✓</string>
     <string name="chart_empty_hint">Добавьте больше записей, чтобы увидеть тенденции.</string>
     <string name="chart_title_bp">Систолическое и диастолическое со временем</string>
     <string name="chart_title_pulse">Пульс со временем</string>

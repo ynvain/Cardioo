@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -37,6 +37,7 @@ import com.cardioo.R
 import com.cardioo.domain.model.Gender
 import com.cardioo.presentation.util.heightUnitString
 import com.cardioo.presentation.util.localizeGender
+import com.cardioo.presentation.util.toggleButtonBorder
 import com.cardioo.presentation.util.weightUnitString
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -59,7 +60,10 @@ fun SettingsScreen(
                 title = { Text(stringResource(R.string.title_settings_profile)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back)
+                        )
                     }
                 },
             )
@@ -72,7 +76,10 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.settings_section_profile), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.settings_section_profile),
+                style = MaterialTheme.typography.titleMedium
+            )
             OutlinedTextField(
                 value = state.name,
                 onValueChange = vm::setName,
@@ -84,7 +91,14 @@ fun SettingsScreen(
             OutlinedTextField(
                 value = state.heightText,
                 onValueChange = vm::setHeightText,
-                label = { Text(stringResource(R.string.label_height_unit, heightUnitString(state.heightUnit))) },
+                label = {
+                    Text(
+                        stringResource(
+                            R.string.label_height_unit,
+                            heightUnitString(state.heightUnit)
+                        )
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -92,10 +106,20 @@ fun SettingsScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = vm::toggleHeightUnit) {
-                    Text(stringResource(R.string.label_height_toggle, heightUnitString(state.heightUnit)))
+                    Text(
+                        stringResource(
+                            R.string.label_height_toggle,
+                            heightUnitString(state.heightUnit)
+                        )
+                    )
                 }
                 OutlinedButton(onClick = vm::toggleWeightUnit) {
-                    Text(stringResource(R.string.label_weight_toggle, weightUnitString(state.weightUnit)))
+                    Text(
+                        stringResource(
+                            R.string.label_weight_toggle,
+                            weightUnitString(state.weightUnit)
+                        )
+                    )
                 }
             }
 
@@ -118,15 +142,16 @@ fun SettingsScreen(
                 }
             }
 
+
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(Gender.Male, Gender.Female).forEach { g ->
-                    OutlinedButton(onClick = { vm.setGender(if (state.gender == g) null else g) }) {
+                    OutlinedButton(
+                        onClick = { vm.setGender(if (state.gender == g) null else g) },
+                        border = toggleButtonBorder(state.gender == g)
+                    ) {
                         Text(
-                            if (state.gender == g) {
-                                localizeGender(g) + stringResource(R.string.check_mark_suffix)
-                            } else {
-                                localizeGender(g)
-                            },
+                            localizeGender(g),
                         )
                     }
                 }
@@ -164,7 +189,9 @@ fun SettingsScreen(
                 ) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDobPicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                OutlinedButton(onClick = {
+                    showDobPicker = false
+                }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             androidx.compose.material3.DatePicker(state = datePickerState)
