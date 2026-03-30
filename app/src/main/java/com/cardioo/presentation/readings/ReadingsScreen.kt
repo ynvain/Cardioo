@@ -189,7 +189,7 @@ private fun MeasurementCard(
             Column(
                 modifier = Modifier
                     .padding(start = 5.dp, top = 5.dp, end = 10.dp, bottom = 5.dp)
-                    .weight(21F),
+                    .weight(20F),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 horizontalAlignment = Alignment.End,
             ) {
@@ -227,17 +227,17 @@ private fun MeasurementCard(
             Column(
                 modifier = Modifier
                     .padding(start = 15.dp, top = 10.dp, end = 10.dp, bottom = 5.dp)
-                    .weight(79F),
+                    .weight(80F),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(top = 10.dp, end = 10.dp, bottom = 5.dp),
+                        .padding(top = 10.dp, end = 5.dp, bottom = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     Column(
-                        modifier = Modifier.weight(35F),
+                        modifier = Modifier.weight(37F),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
@@ -250,7 +250,7 @@ private fun MeasurementCard(
                         )
                     }
                     Column(
-                        modifier = Modifier.weight(30F),
+                        modifier = Modifier.weight(28F),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
