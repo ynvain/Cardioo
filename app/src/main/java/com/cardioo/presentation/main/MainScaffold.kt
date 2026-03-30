@@ -2,12 +2,12 @@ package com.cardioo.presentation.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -170,19 +170,19 @@ fun MainScaffold(
                 NavigationBarItem(
                     selected = tab == 0,
                     onClick = { tab = 0 },
-                    icon = { Icon(Icons.Filled.ListAlt, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null) },
                     label = { Text(stringResource(R.string.cd_nav_readings)) },
                 )
                 NavigationBarItem(
                     selected = tab == 1,
                     onClick = { tab = 1 },
-                    icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
+                    icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
                     label = { Text(stringResource(R.string.cd_nav_statistics)) },
                 )
                 NavigationBarItem(
                     selected = tab == 2,
                     onClick = { tab = 2 },
-                    icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
+                    icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
                     label = { Text(stringResource(R.string.cd_nav_chart)) },
                 )
             }
