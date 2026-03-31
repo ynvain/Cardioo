@@ -77,27 +77,21 @@
         <item quantity="many">%d записей</item>
         <item quantity="other">%d записей</item>
     </plurals>
+    <string name="range_week">Неделя</string>
+    <string name="range_month">Месяц</string>
+    <string name="range_six_months">Полгода</string>
+    <string name="range_year">Год</string>
+    <string name="range_all_time">Всё время</string>
     <string name="chart_metric_bp">АД</string>
     <string name="chart_metric_pulse">Пульс</string>
     <string name="chart_metric_weight">Вес</string>
-    <string name="chart_range_weekly">Неделя</string>
-    <string name="chart_range_monthly">Месяц</string>
-    <string name="chart_range_six_months">6 мес.</string>
-    <string name="chart_range_year">Год</string>
     <string name="chart_empty_hint">Добавьте больше записей, чтобы увидеть тенденции.</string>
-    <string name="chart_title_bp">Систолическое и диастолическое со временем</string>
-    <string name="chart_title_pulse">Пульс со временем</string>
-    <string name="chart_title_weight">Вес со временем</string>
-    <string name="chart_period_weekly">за неделю</string>
-    <string name="chart_period_monthly">за месяц</string>
-    <string name="chart_period_six_months">за 6 месяцев</string>
-    <string name="chart_period_year">за год</string>
     <string name="chart_axis_mmhg">мм рт. ст.</string>
     <string name="chart_axis_bpm">уд/мин</string>
     <string name="chart_axis_date">Дата</string>
     <string name="chart_legend_systolic">Систолическое</string>
     <string name="chart_legend_diastolic">Диастолическое</string>
-    <string name="chart_showing_count">Показано записей: %1$d (%2$s).</string>
+    <string name="chart_showing_count">Записей: %1$d.</string>
     <string name="account_current_suffix"> (текущий)</string>
     <string name="account_height_format">Рост: %1$s %2$s</string>
     <string name="action_edit_profile">Изменить профиль</string>
@@ -121,4 +115,13 @@
     <string name="avatar_initials_fallback">А</string>
     <string name="cd_readings_delete_selected">Удалить выбранные записи</string>
     <string name="cd_readings_cancel_selection">Отменить выбор</string>
+    <string name="stats_range_button">Период: %1$s</string>
+    <string name="stats_row_metric">Метрика</string>
+    <string name="stats_col_min">Мин</string>
+    <string name="stats_col_max">Макс</string>
+    <string name="stats_col_avg">Сред.</string>
+    <string name="stats_row_bp_sys">АД систолическое</string>
+    <string name="stats_row_bp_dia">АД диастолическое</string>
+    <string name="stats_row_pulse">Пульс</string>
+    <string name="stats_row_weight">Вес (%1$s)</string>
 </resources>

@@ -76,27 +76,21 @@
         <item quantity="one">%d entry</item>
         <item quantity="other">%d entries</item>
     </plurals>
+    <string name="range_week">Week</string>
+    <string name="range_month">Month</string>
+    <string name="range_six_months">6 months</string>
+    <string name="range_year">Year</string>
+    <string name="range_all_time">All time</string>
     <string name="chart_metric_bp">BP</string>
     <string name="chart_metric_pulse">Pulse</string>
     <string name="chart_metric_weight">Weight</string>
-    <string name="chart_range_weekly">Weekly</string>
-    <string name="chart_range_monthly">Monthly</string>
-    <string name="chart_range_six_months">6 months</string>
-    <string name="chart_range_year">Year</string>
     <string name="chart_empty_hint">Add more readings to see trends.</string>
-    <string name="chart_title_bp">Systolic/Diastolic over time</string>
-    <string name="chart_title_pulse">Pulse over time</string>
-    <string name="chart_title_weight">Weight over time</string>
-    <string name="chart_period_weekly">weekly</string>
-    <string name="chart_period_monthly">monthly</string>
-    <string name="chart_period_six_months">last 6 months</string>
-    <string name="chart_period_year">last year</string>
     <string name="chart_axis_mmhg">mmHg</string>
     <string name="chart_axis_bpm">bpm</string>
     <string name="chart_axis_date">Date</string>
     <string name="chart_legend_systolic">Systolic</string>
     <string name="chart_legend_diastolic">Diastolic</string>
-    <string name="chart_showing_count">Showing %1$d readings (%2$s).</string>
+    <string name="chart_showing_count">%1$d readings</string>
     <string name="account_current_suffix"> (current)</string>
     <string name="account_height_format">Height: %1$s %2$s</string>
     <string name="action_edit_profile">Edit profile</string>
@@ -122,4 +116,13 @@
     <string name="avatar_initials_fallback">A</string>
     <string name="cd_readings_delete_selected">Delete selected readings</string>
     <string name="cd_readings_cancel_selection">Cancel selection</string>
+    <string name="stats_range_button">Period: %1$s</string>
+    <string name="stats_row_metric">Metric</string>
+    <string name="stats_col_min">Min</string>
+    <string name="stats_col_max">Max</string>
+    <string name="stats_col_avg">Avg</string>
+    <string name="stats_row_bp_sys">BP systolic</string>
+    <string name="stats_row_bp_dia">BP diastolic</string>
+    <string name="stats_row_pulse">Pulse</string>
+    <string name="stats_row_weight">Weight (%1$s)</string>
 </resources>
