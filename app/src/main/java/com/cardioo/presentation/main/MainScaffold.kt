@@ -1,5 +1,9 @@
 package com.cardioo.presentation.main
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -19,6 +23,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,9 +37,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,7 +59,7 @@ fun MainScaffold(
     onOpenManageAccounts: () -> Unit,
     vm: MainViewModel = hiltViewModel(),
 ) {
-    var tab by remember { mutableIntStateOf(0) }
+    var tab by rememberSaveable { mutableIntStateOf(0) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
     var createName by remember { mutableStateOf("") }
@@ -61,6 +69,7 @@ fun MainScaffold(
     val currentAccount = accountState.accounts.firstOrNull { it.id == accountState.currentAccountId }
     val defaultAccountName = stringResource(R.string.account_default_name)
     val currentName = currentAccount?.name ?: defaultAccountName
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LaunchedEffect(tab) {
         if (tab != 0) readingsVm.clearSelection()
@@ -68,6 +77,7 @@ fun MainScaffold(
 
     Scaffold(
         topBar = {
+            if (!isLandscape) {
             TopAppBar(
                 title = {
                     Text(
@@ -153,6 +163,7 @@ fun MainScaffold(
                     }
                 },
             )
+            }
         },
         floatingActionButton = {
             if (tab == 0) {
@@ -166,36 +177,84 @@ fun MainScaffold(
             }
         },
         bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = tab == 0,
-                    onClick = { tab = 0 },
-                    icon = { Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null) },
-                    label = { Text(stringResource(R.string.cd_nav_readings)) },
-                )
-                NavigationBarItem(
-                    selected = tab == 1,
-                    onClick = { tab = 1 },
-                    icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
-                    label = { Text(stringResource(R.string.cd_nav_statistics)) },
-                )
-                NavigationBarItem(
-                    selected = tab == 2,
-                    onClick = { tab = 2 },
-                    icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
-                    label = { Text(stringResource(R.string.cd_nav_chart)) },
-                )
+            if (!isLandscape) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = tab == 0,
+                        onClick = { tab = 0 },
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ListAlt,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(stringResource(R.string.cd_nav_readings)) },
+                    )
+                    NavigationBarItem(
+                        selected = tab == 1,
+                        onClick = { tab = 1 },
+                        icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
+                        label = { Text(stringResource(R.string.cd_nav_statistics)) },
+                    )
+                    NavigationBarItem(
+                        selected = tab == 2,
+                        onClick = { tab = 2 },
+                        icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
+                        label = { Text(stringResource(R.string.cd_nav_chart)) },
+                    )
+                }
             }
         },
     ) { padding ->
-        when (tab) {
-            0 -> ReadingsScreen(
-                contentPadding = padding,
-                onEdit = { onOpenEntry(it) },
-                vm = readingsVm,
-            )
-            1 -> StatisticsScreen(contentPadding = padding)
-            else -> ChartScreen(contentPadding = padding)
+        if (isLandscape) {
+            Row(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+                NavigationRail {
+                    NavigationRailItem(
+                        selected = tab == 0,
+                        onClick = { tab = 0 },
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ListAlt,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(stringResource(R.string.cd_nav_readings)) },
+                    )
+                    NavigationRailItem(
+                        selected = tab == 1,
+                        onClick = { tab = 1 },
+                        icon = { Icon(Icons.Filled.Assessment, contentDescription = null) },
+                        label = { Text(stringResource(R.string.cd_nav_statistics)) },
+                    )
+                    NavigationRailItem(
+                        selected = tab == 2,
+                        onClick = { tab = 2 },
+                        icon = { Icon(Icons.Filled.Insights, contentDescription = null) },
+                        label = { Text(stringResource(R.string.cd_nav_chart)) },
+                    )
+                }
+                when (tab) {
+                    0 -> ReadingsScreen(
+                        contentPadding = PaddingValues(0.dp),
+                        onEdit = { onOpenEntry(it) },
+                        vm = readingsVm,
+                    )
+
+                    1 -> StatisticsScreen(contentPadding = PaddingValues(0.dp))
+                    else -> ChartScreen(contentPadding = PaddingValues(0.dp))
+                }
+            }
+        } else {
+            when (tab) {
+                0 -> ReadingsScreen(
+                    contentPadding = padding,
+                    onEdit = { onOpenEntry(it) },
+                    vm = readingsVm,
+                )
+
+                1 -> StatisticsScreen(contentPadding = padding)
+                else -> ChartScreen(contentPadding = padding)
+            }
         }
     }
 
