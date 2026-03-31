@@ -3,6 +3,7 @@ package com.cardioo.presentation.chart
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,19 +11,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -32,6 +41,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,10 +76,11 @@ fun ChartScreen(
 
     val periodLabel = stringResource(
         when (state.range) {
-            ChartViewModel.Range.Weekly -> R.string.chart_period_weekly
-            ChartViewModel.Range.Monthly -> R.string.chart_period_monthly
-            ChartViewModel.Range.SixMonths -> R.string.chart_period_six_months
-            ChartViewModel.Range.Year -> R.string.chart_period_year
+            ChartViewModel.Range.Week -> R.string.range_week
+            ChartViewModel.Range.Month -> R.string.range_month
+            ChartViewModel.Range.SixMonths -> R.string.range_six_months
+            ChartViewModel.Range.Year -> R.string.range_year
+            ChartViewModel.Range.AllTime -> R.string.range_all_time
         },
     )
 
@@ -96,14 +107,17 @@ fun ChartScreen(
         return toggleButtonBorder(state.range == buttonRange)
     }
 
+    var rangeExpanded by remember { mutableStateOf(false) }
+    var chartZoom by remember(state.metric, state.range) { mutableFloatStateOf(1f) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-            .padding(16.dp),
+            .padding(5.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             OutlinedButton(
                 onClick = { vm.setMetric(ChartViewModel.Metric.Bp) },
                 border = toggleMetricBorder(ChartViewModel.Metric.Bp)
@@ -134,53 +148,45 @@ fun ChartScreen(
                     ),
                 )
             }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-        ) {
-            OutlinedButton(
-                onClick = { vm.setRange(ChartViewModel.Range.Weekly) },
-                border = toggleRangeBorder(ChartViewModel.Range.Weekly)
-            ) {
-                Text(
-                    stringResource(
-                        R.string.chart_range_weekly,
-                    ),
-                )
-            }
-            OutlinedButton(
-                onClick = { vm.setRange(ChartViewModel.Range.Monthly) },
-                border = toggleRangeBorder(ChartViewModel.Range.Monthly)
-            ) {
-                Text(
-                    stringResource(
-                        R.string.chart_range_monthly,
-                    ),
-                )
-            }
-            OutlinedButton(
-                onClick = { vm.setRange(ChartViewModel.Range.SixMonths) },
-                border = toggleRangeBorder(ChartViewModel.Range.SixMonths)
-            ) {
-                Text(
-                    stringResource(
-                        R.string.chart_range_six_months,
-                    ),
-                )
-            }
-            OutlinedButton(
-                onClick = { vm.setRange(ChartViewModel.Range.Year) },
-                border = toggleRangeBorder(ChartViewModel.Range.Year)
-            ) {
-                Text(
-                    stringResource(
-                        R.string.chart_range_year,
-                    ),
-                )
+            Box {
+                OutlinedButton(
+                    onClick = { rangeExpanded = true },
+                    border = toggleRangeBorder(state.range)
+                ) {
+                    Text(periodLabel)
+                }
+                DropdownMenu(
+                    expanded = rangeExpanded,
+                    onDismissRequest = { rangeExpanded = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.range_week)) },
+                        onClick = {
+                            vm.setRange(ChartViewModel.Range.Week); rangeExpanded = false
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.range_month)) },
+                        onClick = {
+                            vm.setRange(ChartViewModel.Range.Month); rangeExpanded = false
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.range_six_months)) },
+                        onClick = {
+                            vm.setRange(ChartViewModel.Range.SixMonths); rangeExpanded = false
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.range_year)) },
+                        onClick = { vm.setRange(ChartViewModel.Range.Year); rangeExpanded = false },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.range_all_time)) },
+                        onClick = {
+                            vm.setRange(ChartViewModel.Range.AllTime); rangeExpanded = false
+                        },
+                    )
+                }
             }
         }
 
@@ -193,22 +199,13 @@ fun ChartScreen(
             return
         }
 
-        Text(
-            stringResource(
-                when (state.metric) {
-                    ChartViewModel.Metric.Bp -> R.string.chart_title_bp
-                    ChartViewModel.Metric.Pulse -> R.string.chart_title_pulse
-                    ChartViewModel.Metric.Weight -> R.string.chart_title_weight
-                },
-            ),
-            style = MaterialTheme.typography.titleMedium,
-        )
-
-        if (state.metric == ChartViewModel.Metric.Bp) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 10.dp)
+        ) {
+            Text("x${"%.1f".format(chartZoom)}", style = MaterialTheme.typography.bodySmall)
+            if (state.metric == ChartViewModel.Metric.Bp) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -239,29 +236,41 @@ fun ChartScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Text(
+                    stringResource(R.string.chart_showing_count, chartData.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
-        SimpleLineChart(
+        val chartScroll = rememberScrollState()
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp),
-            metric = state.metric,
-            range = state.range,
-            measurements = chartData,
-            weightDisplayUnit = weightDisplayUnit,
-            yAxisLabel = yAxisLabel,
-            dateAxisLabel = stringResource(R.string.chart_axis_date),
-            axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
-            plotColor = MaterialTheme.colorScheme.onSurface,
-        )
-
-        Text(
-            stringResource(R.string.chart_showing_count, chartData.size, periodLabel),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+                .fillMaxHeight()
+                .pointerInput(state.metric, state.range) {
+                    detectTransformGestures { _, _, zoom, _ ->
+                        chartZoom = (chartZoom * zoom).coerceIn(1f, 6f)
+                    }
+                }
+                .horizontalScroll(chartScroll),
+        ) {
+            SimpleLineChart(
+                modifier = Modifier
+                    .height(350.dp)
+                    .width(350.dp * chartZoom),
+                metric = state.metric,
+                range = state.range,
+                measurements = chartData,
+                weightDisplayUnit = weightDisplayUnit,
+                yAxisLabel = yAxisLabel,
+                dateAxisLabel = stringResource(R.string.chart_axis_date),
+                axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                plotColor = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
@@ -326,10 +335,11 @@ private fun SimpleLineChart(
     }.ifEmpty { listOf(minY, maxY) }
 
     val xTickCount = when (range) {
-        ChartViewModel.Range.Weekly -> 5
-        ChartViewModel.Range.Monthly -> 5
+        ChartViewModel.Range.Week -> 5
+        ChartViewModel.Range.Month -> 5
         ChartViewModel.Range.SixMonths -> 6
         ChartViewModel.Range.Year -> 6
+        ChartViewModel.Range.AllTime -> 7
     }
     val xTicksMillis = List(xTickCount) { i ->
         val frac = if (xTickCount == 1) 0.0 else i.toDouble() / (xTickCount - 1)
@@ -499,12 +509,13 @@ private fun dateTimeFormatterForRange(
     locale: Locale
 ): DateTimeFormatter =
     when (range) {
-        ChartViewModel.Range.Weekly,
-        ChartViewModel.Range.Monthly,
+        ChartViewModel.Range.Week,
+        ChartViewModel.Range.Month,
             -> DateTimeFormatter.ofPattern("d MMM", locale)
 
         ChartViewModel.Range.SixMonths,
         ChartViewModel.Range.Year,
+        ChartViewModel.Range.AllTime,
             -> DateTimeFormatter.ofPattern("MMM yyyy", locale)
     }
 
@@ -528,11 +539,13 @@ private fun filterByRange(
     range: ChartViewModel.Range,
 ): List<HealthMeasurement> {
     val days = when (range) {
-        ChartViewModel.Range.Weekly -> 7
-        ChartViewModel.Range.Monthly -> 30
+        ChartViewModel.Range.Week -> 7
+        ChartViewModel.Range.Month -> 30
         ChartViewModel.Range.SixMonths -> 180
         ChartViewModel.Range.Year -> 365
+        ChartViewModel.Range.AllTime -> Int.MAX_VALUE
     }
+    if (range == ChartViewModel.Range.AllTime) return measurements
     val cutoff = java.time.ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
     return measurements.filter { it.timestampEpochMillis >= cutoff }
 }

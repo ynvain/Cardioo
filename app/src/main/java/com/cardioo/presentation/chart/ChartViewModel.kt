@@ -17,7 +17,7 @@ class ChartViewModel @Inject constructor(
     observeMeasurements: ObserveMeasurements,
 ) : ViewModel() {
     private val metric = MutableStateFlow(Metric.Bp)
-    private val range = MutableStateFlow(Range.Monthly)
+    private val range = MutableStateFlow(Range.Month)
 
     val state: StateFlow<State> =
         combine(observeMeasurements(), metric, range) { measurements, m, r ->
@@ -30,12 +30,12 @@ class ChartViewModel @Inject constructor(
 
     data class State(
         val metric: Metric = Metric.Bp,
-        val range: Range = Range.Monthly,
+        val range: Range = Range.Month,
         val measurements: List<HealthMeasurement> = emptyList(),
     )
 
     enum class Metric { Bp, Pulse, Weight }
-    enum class Range { Weekly, Monthly, SixMonths, Year }
+    enum class Range { Week, Month, SixMonths, Year, AllTime }
 
     fun setMetric(v: Metric) = metric.update { v }
     fun setRange(v: Range) = range.update { v }
