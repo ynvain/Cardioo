@@ -1,5 +1,6 @@
 package com.cardioo.presentation.chart
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -114,8 +115,13 @@ fun ChartScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-            .padding(5.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(5.dp)
+            .pointerInput(state.metric, state.range) {
+                detectTransformGestures { _, _, zoom, _ ->
+                    chartZoom = (chartZoom * zoom).coerceIn(1f, 2.5f)
+                }
+            },
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             OutlinedButton(
@@ -236,36 +242,43 @@ fun ChartScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Text(
-                    stringResource(R.string.chart_showing_count, chartData.size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
+            Text(
+                stringResource(R.string.chart_showing_count, chartData.size),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         val chartScroll = rememberScrollState()
+
+        val isLandscape =
+            LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+        var chartContainerWidth by remember { mutableStateOf(370.dp) }
+        if (isLandscape)
+            chartContainerWidth = 750.dp
+
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .width(chartContainerWidth)
                 .fillMaxHeight()
-                .pointerInput(state.metric, state.range) {
-                    detectTransformGestures { _, _, zoom, _ ->
-                        chartZoom = (chartZoom * zoom).coerceIn(1f, 6f)
+                .then(
+                    if (chartZoom > 1f) {
+                        Modifier.horizontalScroll(chartScroll)
+                    } else {
+                        Modifier
                     }
-                }
-                .horizontalScroll(chartScroll),
+                )
         ) {
             SimpleLineChart(
                 modifier = Modifier
-                    .height(350.dp)
-                    .width(350.dp * chartZoom),
+                    .height(370.dp)
+                    .width(chartContainerWidth * chartZoom),
                 metric = state.metric,
                 range = state.range,
                 measurements = chartData,
                 weightDisplayUnit = weightDisplayUnit,
                 yAxisLabel = yAxisLabel,
-                dateAxisLabel = stringResource(R.string.chart_axis_date),
                 axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
                 plotColor = MaterialTheme.colorScheme.onSurface,
@@ -282,7 +295,6 @@ private fun SimpleLineChart(
     measurements: List<HealthMeasurement>,
     weightDisplayUnit: WeightUnit,
     yAxisLabel: String,
-    dateAxisLabel: String,
     axisColor: Color,
     gridColor: Color,
     plotColor: Color,
@@ -442,7 +454,7 @@ private fun SimpleLineChart(
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 xx,
-                size.height - 14f * densityScale,
+                plotBottom + 16f * densityScale,
                 paintSmall
             )
         }
@@ -452,16 +464,7 @@ private fun SimpleLineChart(
         drawContext.canvas.nativeCanvas.drawText(
             yAxisLabel,
             plotLeft,
-            16f * densityScale,
-            paintSmall
-        )
-
-        // X-axis title
-        paint.textAlign = android.graphics.Paint.Align.RIGHT
-        drawContext.canvas.nativeCanvas.drawText(
-            dateAxisLabel,
-            plotRight,
-            size.height - 2f * densityScale,
+            plotTop,
             paintSmall
         )
 
