@@ -206,9 +206,6 @@ fun MeasurementEntryScreen(
                     value = state.weightText,
                     onValueChange = { new ->
                         vm.setWeightText(new)
-                        if (vm.isWeightTextCompleteForFocus(new)) {
-                            focusManager.clearFocus()
-                        }
                     },
                     label = {
                         Text(
@@ -272,7 +269,7 @@ fun MeasurementEntryScreen(
                 minLines = 3,
             )
 
-            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            state.error?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
 
             Spacer(Modifier.height(4.dp))
             Button(

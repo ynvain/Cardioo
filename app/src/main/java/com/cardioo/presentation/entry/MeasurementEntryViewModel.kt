@@ -45,7 +45,7 @@ class MeasurementEntryViewModel @Inject constructor(
         val weightUnit: WeightUnit = WeightUnit.KG,
         val notes: String = "",
         val profile: UserProfile? = null,
-        val error: String? = null,
+        val error: Int? = null,
         val saving: Boolean = false,
     ) {
         val systolic: Int? get() = systolicText.toIntOrNull()
@@ -61,13 +61,25 @@ class MeasurementEntryViewModel @Inject constructor(
 
             if (measurementId == null) {
                 val defaultUnit = profile?.weightUnit ?: WeightUnit.KG
-                _state.update { it.copy(loading = false, measurementId = null, weightUnit = defaultUnit) }
+                _state.update {
+                    it.copy(
+                        loading = false,
+                        measurementId = null,
+                        weightUnit = defaultUnit
+                    )
+                }
                 return@launch
             }
 
             val m = getMeasurement(measurementId)
             if (m == null) {
-                _state.update { it.copy(loading = false, measurementId = null, error = "Reading not found.") }
+                _state.update {
+                    it.copy(
+                        loading = false,
+                        measurementId = null,
+                        error = com.cardioo.R.string.error_reading_not_found
+                    )
+                }
                 return@launch
             }
             _state.update {
@@ -88,11 +100,19 @@ class MeasurementEntryViewModel @Inject constructor(
         }
     }
 
-    fun setTimestamp(epochMillis: Long) = _state.update { it.copy(timestampEpochMillis = epochMillis) }
-    fun setSystolicText(v: String) = _state.update { it.copy(systolicText = v.filter(Char::isDigit)) }
-    fun setDiastolicText(v: String) = _state.update { it.copy(diastolicText = v.filter(Char::isDigit)) }
+    fun setTimestamp(epochMillis: Long) =
+        _state.update { it.copy(timestampEpochMillis = epochMillis) }
+
+    fun setSystolicText(v: String) =
+        _state.update { it.copy(systolicText = v.filter(Char::isDigit)) }
+
+    fun setDiastolicText(v: String) =
+        _state.update { it.copy(diastolicText = v.filter(Char::isDigit)) }
+
     fun setPulseText(v: String) = _state.update { it.copy(pulseText = v.filter(Char::isDigit)) }
-    fun setWeightText(v: String) = _state.update { it.copy(weightText = v.filter { c -> c.isDigit() || c == '.' }) }
+    fun setWeightText(v: String) =
+        _state.update { it.copy(weightText = v.filter { c -> c.isDigit() || c == '.' }) }
+
     fun setNotes(v: String) = _state.update { it.copy(notes = v) }
 
     fun toggleWeightUnit() {
@@ -117,16 +137,6 @@ class MeasurementEntryViewModel @Inject constructor(
         return bpCategory(s, d)
     }
 
-    /**
-     * Used by the entry screen to auto-advance focus: only when the typed weight parses and is in the
-     * realistic kg range (same rule as save validation), so partial input like "7" does not jump.
-     */
-    fun isWeightTextCompleteForFocus(weightText: String): Boolean {
-        val w = weightText.trim().toDoubleOrNull() ?: return false
-        if (w <= 0.0) return false
-        val wKg = if (_state.value.weightUnit == WeightUnit.KG) w else poundsToKg(w)
-        return wKg in 20.0..300.0
-    }
 
     fun computedBmi(): Int? {
         val profile = _state.value.profile ?: return null
@@ -143,25 +153,25 @@ class MeasurementEntryViewModel @Inject constructor(
         return bmi.roundToInt().takeIf { it in 1..200 }
     }
 
-    fun validate(): String? {
-        val s = _state.value.systolic ?: return "Enter systolic (50–250)."
-        val d = _state.value.diastolic ?: return "Enter diastolic (30–150)."
+    fun validate(): Int? {
+        val s = _state.value.systolic ?: return com.cardioo.R.string.error_enter_systolic
+        val d = _state.value.diastolic ?: return com.cardioo.R.string.error_enter_diastolic
 
-        if (s !in 50..250) return "Systolic must be 50–250."
-        if (d !in 30..150) return "Diastolic must be 30–150."
+        if (s !in 50..250) return com.cardioo.R.string.error_systolic_range
+        if (d !in 30..150) return com.cardioo.R.string.error_diastolic_range
 
         val pulseText = _state.value.pulseText.trim()
         if (pulseText.isNotEmpty()) {
-            val p = _state.value.pulse ?: return "Enter a valid pulse (40-200)."
-            if (p !in 40..200) return "Pulse must be 40-200."
+            _state.value.pulse?.let { if (it !in 40..200) return com.cardioo.R.string.error_pulse_range }
+
         }
 
         val weightText = _state.value.weightText.trim()
         if (weightText.isNotEmpty()) {
-            val w = _state.value.weight ?: return "Enter a valid weight."
-            if (w <= 0.0) return "Weight must be positive."
+            val w = _state.value.weight ?: return com.cardioo.R.string.error_weight_invalid
+            if (w <= 0.0) return com.cardioo.R.string.error_weight_positive
             val wKg = if (_state.value.weightUnit == WeightUnit.KG) w else poundsToKg(w)
-            if (wKg !in 20.0..300.0) return "Weight looks unrealistic."
+            if (wKg !in 20.0..300.0) return com.cardioo.R.string.error_weight_unrealistic
         }
 
         return null
@@ -177,7 +187,8 @@ class MeasurementEntryViewModel @Inject constructor(
         val s = _state.value.systolic!!
         val d = _state.value.diastolic!!
         val p = _state.value.pulseText.trim().takeIf { it.isNotEmpty() }?.let { _state.value.pulse }
-        val w = _state.value.weightText.trim().takeIf { it.isNotEmpty() }?.let { _state.value.weight }
+        val w =
+            _state.value.weightText.trim().takeIf { it.isNotEmpty() }?.let { _state.value.weight }
 
         viewModelScope.launch {
             _state.update { it.copy(saving = true, error = null) }
