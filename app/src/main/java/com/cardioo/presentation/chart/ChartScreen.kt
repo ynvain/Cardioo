@@ -373,10 +373,10 @@ private fun SimpleLineChart(
             color = axisArgb
         }
 
-        val reserveLeft = 44f * densityScale
-        val reserveBottom = 40f * densityScale
+        val reserveLeft = 35f * densityScale
+        val reserveBottom = 25f * densityScale
         val reserveRight = 12f * densityScale
-        val reserveTop = 28f * densityScale
+        val reserveTop = 12 * densityScale
 
         val plotLeft = reserveLeft
         val plotRight = size.width - reserveRight
