@@ -1,6 +1,7 @@
 package com.cardioo.presentation.chart
 
 import android.content.res.Configuration
+import android.graphics.Paint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -58,6 +59,7 @@ import com.cardioo.presentation.util.toggleButtonBorder
 import com.cardioo.presentation.util.weightUnitString
 import java.time.Instant
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.floor
@@ -279,6 +281,7 @@ fun ChartScreen(
                 range = state.range,
                 measurements = chartData,
                 weightDisplayUnit = weightDisplayUnit,
+                chartZoom = chartZoom,
                 yAxisLabel = yAxisLabel,
                 axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
@@ -295,6 +298,7 @@ private fun SimpleLineChart(
     range: ChartViewModel.Range,
     measurements: List<HealthMeasurement>,
     weightDisplayUnit: WeightUnit,
+    chartZoom: Float,
     yAxisLabel: String,
     axisColor: Color,
     gridColor: Color,
@@ -347,13 +351,16 @@ private fun SimpleLineChart(
         }
     }.ifEmpty { listOf(minY, maxY) }
 
-    val xTickCount = when (range) {
-        ChartViewModel.Range.Week -> 5
-        ChartViewModel.Range.Month -> 5
+    val xTickCountByPeriod = when (range) {
+        ChartViewModel.Range.Week -> 7
+        ChartViewModel.Range.Month -> 6
         ChartViewModel.Range.SixMonths -> 6
         ChartViewModel.Range.Year -> 6
         ChartViewModel.Range.AllTime -> 7
     }
+
+    val xTickCount = if (chartZoom < 2) xTickCountByPeriod else xTickCountByPeriod * 2 - 1
+
     val xTicksMillis = List(xTickCount) { i ->
         val frac = if (xTickCount == 1) 0.0 else i.toDouble() / (xTickCount - 1)
         (plotMinX + xSpan * frac).toLong()
@@ -365,11 +372,11 @@ private fun SimpleLineChart(
     Canvas(modifier = modifier) {
         val densityScale = density
         val labelPx = 11f * densityScale
-        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = labelPx
             color = axisArgb
         }
-        val paintSmall = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        val paintSmall = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = 10f * densityScale
             color = axisArgb
         }
@@ -432,7 +439,7 @@ private fun SimpleLineChart(
             strokeWidth = 2f,
         )
 
-        paint.textAlign = android.graphics.Paint.Align.RIGHT
+        paint.textAlign = Paint.Align.RIGHT
         for (yt in yTicks) {
             val yy = yAtValue(yt)
             val label = if (metric == ChartViewModel.Metric.Weight) {
@@ -448,7 +455,7 @@ private fun SimpleLineChart(
             )
         }
 
-        paint.textAlign = android.graphics.Paint.Align.CENTER
+        paint.textAlign = Paint.Align.CENTER
         for (xm in xTicksMillis) {
             val xx = xAtMillis(xm)
             val label = Instant.ofEpochMilli(xm).atZone(zone).format(dateFormatter)
@@ -461,7 +468,7 @@ private fun SimpleLineChart(
         }
 
         // Y-axis unit (rotated would be ideal; short label above chart)
-        paint.textAlign = android.graphics.Paint.Align.LEFT
+        paint.textAlign = Paint.Align.LEFT
         drawContext.canvas.nativeCanvas.drawText(
             yAxisLabel,
             plotLeft,
@@ -500,12 +507,12 @@ private fun SimpleLineChart(
                 val cy = yAtValue(v)
                 drawCircle(
                     color = colors[seriesIdx % colors.size],
-                    radius = 5f,
+                    radius = 7f,
                     center = Offset(cx, cy),
                 )
                 drawCircle(
                     color = plotColor,
-                    radius = 5f,
+                    radius = 7f,
                     center = Offset(cx, cy),
                     style = Stroke(width = 1.5f),
                 )
@@ -556,6 +563,6 @@ private fun filterByRange(
         ChartViewModel.Range.AllTime -> Int.MAX_VALUE
     }
     if (range == ChartViewModel.Range.AllTime) return measurements
-    val cutoff = java.time.ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
+    val cutoff = ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
     return measurements.filter { it.timestampEpochMillis >= cutoff }
 }
