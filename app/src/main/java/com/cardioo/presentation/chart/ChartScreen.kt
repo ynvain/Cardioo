@@ -51,6 +51,7 @@ import com.cardioo.domain.model.HealthMeasurement
 import com.cardioo.domain.model.WeightUnit
 import com.cardioo.domain.model.kgToPounds
 import com.cardioo.domain.model.poundsToKg
+import com.cardioo.presentation.theme.PinkAccent
 import com.cardioo.presentation.theme.PinkPrimary
 import com.cardioo.presentation.util.Orange
 import com.cardioo.presentation.util.toggleButtonBorder
@@ -473,7 +474,7 @@ private fun SimpleLineChart(
 
         val colors = when (metric) {
             ChartViewModel.Metric.Bp -> listOf(PinkPrimary, Color.Cyan)
-            ChartViewModel.Metric.Pulse -> listOf(PinkPrimary)
+            ChartViewModel.Metric.Pulse -> listOf(PinkAccent)
             ChartViewModel.Metric.Weight -> listOf(Orange)
         }
 
