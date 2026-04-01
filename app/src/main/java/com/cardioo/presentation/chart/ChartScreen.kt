@@ -52,6 +52,7 @@ import com.cardioo.domain.model.WeightUnit
 import com.cardioo.domain.model.kgToPounds
 import com.cardioo.domain.model.poundsToKg
 import com.cardioo.presentation.theme.PinkPrimary
+import com.cardioo.presentation.util.Orange
 import com.cardioo.presentation.util.toggleButtonBorder
 import com.cardioo.presentation.util.weightUnitString
 import java.time.Instant
@@ -468,7 +469,13 @@ private fun SimpleLineChart(
         )
 
         val seriesCount = if (metric == ChartViewModel.Metric.Bp) 2 else 1
-        val colors = listOf(PinkPrimary, Color.Cyan)
+
+
+        val colors = when (metric) {
+            ChartViewModel.Metric.Bp -> listOf(PinkPrimary, Color.Cyan)
+            ChartViewModel.Metric.Pulse -> listOf(PinkPrimary)
+            ChartViewModel.Metric.Weight -> listOf(Orange)
+        }
 
         repeat(seriesCount) { seriesIdx ->
             val path = Path()

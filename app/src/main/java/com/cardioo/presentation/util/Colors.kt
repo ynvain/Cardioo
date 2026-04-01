@@ -8,6 +8,10 @@ import androidx.compose.ui.unit.dp
 import com.cardioo.domain.model.BpCategory
 import com.cardioo.presentation.theme.PinkPrimary
 
+
+val Orange = Color(0xFFFFA726);
+val Bordeaux = Color(0xFF911535);
+
 @Composable
 fun toggleButtonBorder(toggle: Boolean): BorderStroke {
     val toggledButtonBorder = BorderStroke(2.dp, PinkPrimary)
@@ -22,8 +26,8 @@ fun categoryColor(category: BpCategory): Color {
         BpCategory.Hypotension -> Color(0xFF5C6BC0)
         BpCategory.Normal -> Color(0xFF009650)
         BpCategory.Elevated -> Color(0xFFBEDC39)
-        BpCategory.HypertensionStage1 -> Color(0xFFFFA726)
+        BpCategory.HypertensionStage1 -> Orange
         BpCategory.HypertensionStage2 -> Color(0xFFF85C90)
-        BpCategory.HypertensiveCrisis -> Color(0xFF911535)
+        BpCategory.HypertensiveCrisis -> Bordeaux
     }
 }
