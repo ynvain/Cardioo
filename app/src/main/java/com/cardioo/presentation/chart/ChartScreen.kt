@@ -157,7 +157,6 @@ fun ChartScreen(
             Box {
                 OutlinedButton(
                     onClick = { rangeExpanded = true },
-                    border = toggleRangeBorder(state.range)
                 ) {
                     Text(periodLabel)
                 }
