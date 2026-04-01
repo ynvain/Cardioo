@@ -66,10 +66,9 @@
     <string name="format_bp_mmhg">%1$d/%2$d</string>
     <string name="format_pulse_bpm">%1$d</string>
     <string name="format_weight_with_unit">%1$s %2$s</string>
-    <string name="statistics_card_title">Statistics</string>
     <string name="cd_export_csv">Export CSV</string>
     <string name="statistics_no_readings">No readings yet.</string>
-    <string name="statistics_avg_bp_format">Average %1$d/%2$d mmHg</string>
+    <string name="statistics_avg_bp_format">Average %1$d/%2$d</string>
     <string name="export_csv_success">Exported CSV</string>
     <string name="export_csv_failed">Export failed</string>
     <plurals name="entries_count">
@@ -121,8 +120,8 @@
     <string name="stats_col_min">Min</string>
     <string name="stats_col_max">Max</string>
     <string name="stats_col_avg">Avg</string>
-    <string name="stats_row_bp_sys">BP systolic</string>
-    <string name="stats_row_bp_dia">BP diastolic</string>
+    <string name="stats_row_bp_sys">Systolic</string>
+    <string name="stats_row_bp_dia">Diastolic</string>
     <string name="stats_row_pulse">Pulse</string>
     <string name="stats_row_weight">Weight (%1$s)</string>
 </resources>

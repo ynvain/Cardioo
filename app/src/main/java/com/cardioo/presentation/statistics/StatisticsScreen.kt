@@ -39,6 +39,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -47,7 +49,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
 import com.cardioo.domain.model.HealthMeasurement
 import com.cardioo.presentation.util.categoryColor
-import com.cardioo.presentation.util.formatLocalizedDateTime
 import com.cardioo.presentation.util.localizeBpCategory
 import com.cardioo.presentation.util.weightUnitString
 import kotlinx.coroutines.launch
@@ -79,7 +80,7 @@ fun StatisticsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-            .padding(16.dp)
+            .padding(5.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -87,15 +88,68 @@ fun StatisticsScreen(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         ) {
+            val latest = state.summary.latest
+            if (latest == null) {
+                Text(
+                    stringResource(R.string.statistics_no_readings),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                return@Card;
+            }
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.statistics_card_title),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Box {
+                        OutlinedButton(onClick = { rangeExpanded = true }) {
+                            Text(
+                                stringResource(
+                                    R.string.stats_range_button,
+                                    stringResource(state.periodLabelRes),
+                                ),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = rangeExpanded,
+                            onDismissRequest = { rangeExpanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.range_week)) },
+                                onClick = {
+                                    vm.setRange(StatisticsViewModel.Range.Week); rangeExpanded =
+                                    false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.range_month)) },
+                                onClick = {
+                                    vm.setRange(StatisticsViewModel.Range.Month); rangeExpanded =
+                                    false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.range_six_months)) },
+                                onClick = {
+                                    vm.setRange(StatisticsViewModel.Range.SixMonths); rangeExpanded =
+                                    false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.range_year)) },
+                                onClick = {
+                                    vm.setRange(StatisticsViewModel.Range.Year); rangeExpanded =
+                                    false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.range_all_time)) },
+                                onClick = {
+                                    vm.setRange(StatisticsViewModel.Range.AllTime); rangeExpanded =
+                                    false
+                                },
+                            )
+                        }
+                    }
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { exportLauncher.launch(context.getString(R.string.csv_default_filename)) }) {
                         Icon(
@@ -105,86 +159,11 @@ fun StatisticsScreen(
                     }
                 }
 
-                Box {
-                    OutlinedButton(onClick = { rangeExpanded = true }) {
-                        Text(
-                            stringResource(
-                                R.string.stats_range_button,
-                                stringResource(state.periodLabelRes),
-                            ),
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = rangeExpanded,
-                        onDismissRequest = { rangeExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.range_week)) },
-                            onClick = {
-                                vm.setRange(StatisticsViewModel.Range.Week); rangeExpanded = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.range_month)) },
-                            onClick = {
-                                vm.setRange(StatisticsViewModel.Range.Month); rangeExpanded =
-                                false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.range_six_months)) },
-                            onClick = {
-                                vm.setRange(StatisticsViewModel.Range.SixMonths); rangeExpanded =
-                                false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.range_year)) },
-                            onClick = {
-                                vm.setRange(StatisticsViewModel.Range.Year); rangeExpanded = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.range_all_time)) },
-                            onClick = {
-                                vm.setRange(StatisticsViewModel.Range.AllTime); rangeExpanded =
-                                false
-                            },
-                        )
-                    }
-                }
-
-                val latest = state.summary.latest
-                if (latest == null) {
-                    Text(
-                        stringResource(R.string.statistics_no_readings),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                } else {
-                    Text(
-                        formatLocalizedDateTime(latest.timestampEpochMillis),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        stringResource(R.string.format_bp_mmhg, latest.systolic, latest.diastolic),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Text(
-                        listOfNotNull(
-                            latest.pulse?.let { stringResource(R.string.format_pulse_bpm, it) },
-                            latest.weight?.let {
-                                stringResource(
-                                    R.string.format_weight_with_unit,
-                                    it.toString(),
-                                    weightUnitString(latest.weightUnit),
-                                )
-                            },
-                        ).joinToString(stringResource(R.string.bullet_separator))
-                            .ifEmpty { stringResource(R.string.value_empty) },
-                    )
-                }
-
                 if (state.summary.avgSystolic != null && state.summary.avgDiastolic != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                     Text(
                         stringResource(
                             R.string.statistics_avg_bp_format,
@@ -194,19 +173,15 @@ fun StatisticsScreen(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     state.averageBpCategory?.let { category ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                stringResource(R.string.bp_category_format),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                localizeBpCategory(category),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = categoryColor(category),
-                            )
+                        Text(
+                            localizeBpCategory(category),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(categoryColor(category))
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFFFFFFFF),
+                        )
                         }
                     }
                     Text(

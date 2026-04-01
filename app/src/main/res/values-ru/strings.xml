@@ -65,10 +65,9 @@
     <string name="format_bp_mmhg">%1$d/%2$d</string>
     <string name="format_pulse_bpm">%1$d уд/мин</string>
     <string name="format_weight_with_unit">%1$s %2$s</string>
-    <string name="statistics_card_title">Статистика</string>
     <string name="cd_export_csv">Экспорт CSV</string>
     <string name="statistics_no_readings">Пока нет записей.</string>
-    <string name="statistics_avg_bp_format">Среднее %1$d/%2$d мм рт. ст.</string>
+    <string name="statistics_avg_bp_format">Среднее %1$d/%2$d</string>
     <string name="export_csv_success">CSV экспортирован</string>
     <string name="export_csv_failed">Не удалось экспортировать</string>
     <plurals name="entries_count">
@@ -120,8 +119,8 @@
     <string name="stats_col_min">Мин</string>
     <string name="stats_col_max">Макс</string>
     <string name="stats_col_avg">Сред.</string>
-    <string name="stats_row_bp_sys">АД систолическое</string>
-    <string name="stats_row_bp_dia">АД диастолическое</string>
+    <string name="stats_row_bp_sys">Систолическое</string>
+    <string name="stats_row_bp_dia">Диастолическое</string>
     <string name="stats_row_pulse">Пульс</string>
     <string name="stats_row_weight">Вес (%1$s)</string>
 </resources>
