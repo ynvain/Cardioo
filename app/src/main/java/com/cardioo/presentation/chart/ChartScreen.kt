@@ -307,7 +307,8 @@ private fun SimpleLineChart(
     val sorted = measurements.sortedBy { it.timestampEpochMillis }
     val zone = ZoneId.systemDefault()
     val locale = Locale.getDefault()
-    val dateFormatter = dateTimeFormatterForRange(range, locale)
+    val dateFormatter = dateTimeFormatterForRange(range, locale, true)
+    val dateFormatterWithoutYear = dateTimeFormatterForRange(range, locale, false)
 
     fun valuesFor(m: HealthMeasurement): List<Double> =
         when (metric) {
@@ -342,7 +343,7 @@ private fun SimpleLineChart(
     val plotMaxX = maxX + xPad
     val xSpan = (plotMaxX - plotMinX).coerceAtLeast(1.0)
 
-    val yStep = niceStep(maxY - minY, 5)
+    val yStep = niceStep(maxY - minY, 6)
     var yTick = floor(minY / yStep) * yStep
     val yTicks = buildList {
         while (yTick <= maxY + yStep * 0.001 && size < 10) {
@@ -458,7 +459,9 @@ private fun SimpleLineChart(
         paint.textAlign = Paint.Align.CENTER
         for (xm in xTicksMillis) {
             val xx = xAtMillis(xm)
-            val label = Instant.ofEpochMilli(xm).atZone(zone).format(dateFormatter)
+            val date = Instant.ofEpochMilli(xm).atZone(zone);
+            val sameYear = date.year == ZonedDateTime.now().year
+            val label = date.format(if (sameYear) dateFormatterWithoutYear else dateFormatter)
             drawContext.canvas.nativeCanvas.drawText(
                 label,
                 xx,
@@ -523,7 +526,8 @@ private fun SimpleLineChart(
 
 private fun dateTimeFormatterForRange(
     range: ChartViewModel.Range,
-    locale: Locale
+    locale: Locale,
+    printYear: Boolean,
 ): DateTimeFormatter =
     when (range) {
         ChartViewModel.Range.Week,
@@ -533,7 +537,10 @@ private fun dateTimeFormatterForRange(
         ChartViewModel.Range.SixMonths,
         ChartViewModel.Range.Year,
         ChartViewModel.Range.AllTime,
-            -> DateTimeFormatter.ofPattern("MMM yyyy", locale)
+            -> if (printYear) DateTimeFormatter.ofPattern(
+            "MMM yyyy",
+            locale
+        ) else DateTimeFormatter.ofPattern("MMM", locale)
     }
 
 private fun niceStep(range: Double, maxTicks: Int): Double {
