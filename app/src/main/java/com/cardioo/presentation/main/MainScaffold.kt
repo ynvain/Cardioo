@@ -1,10 +1,14 @@
 package com.cardioo.presentation.main
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Add
@@ -39,10 +43,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
@@ -109,6 +116,7 @@ fun MainScaffold(
                         AccountAvatar(
                             name = currentName,
                             background = avatarColor(currentName),
+                            38.dp,
                         )
                     }
                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
@@ -119,6 +127,7 @@ fun MainScaffold(
                                 AccountAvatar(
                                     name = currentName,
                                     background = avatarColor(currentName),
+                                    36.dp,
                                 )
                             },
                         )
@@ -135,8 +144,10 @@ fun MainScaffold(
                                         AccountAvatar(
                                             name = account.name,
                                             background = avatarColor(account.name),
+                                            30.dp,
                                         )
                                     },
+                                    modifier = Modifier.padding(start = 2.dp)
                                 )
                             }
                         DropdownMenuItem(
@@ -207,7 +218,7 @@ fun MainScaffold(
         },
     ) { padding ->
         if (isLandscape) {
-            Row(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.fillMaxSize()) {
                 NavigationRail {
                     NavigationRailItem(
                         selected = tab == 0,
@@ -290,20 +301,23 @@ fun MainScaffold(
 private fun AccountAvatar(
     name: String,
     background: Color,
+    size: Dp,
 ) {
     val initialsFallback = stringResource(R.string.avatar_initials_fallback)
     val initials = name.trim().split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
     val contentColor = if (background.luminance() > 0.6f) Color.Black else Color.White
-    androidx.compose.material3.Surface(
-        color = background,
-        shape = androidx.compose.foundation.shape.CircleShape,
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(background, shape = CircleShape),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = initials.ifBlank { initialsFallback },
             color = contentColor,
-            modifier = androidx.compose.ui.Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelMedium,
-        )
+
+            )
     }
 }
 
