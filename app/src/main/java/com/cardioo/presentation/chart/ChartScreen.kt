@@ -122,7 +122,7 @@ fun ChartScreen(
             .padding(5.dp)
             .pointerInput(state.metric, state.range) {
                 detectTransformGestures { _, _, zoom, _ ->
-                    chartZoom = (chartZoom * zoom).coerceIn(1f, 2.5f)
+                    chartZoom = (chartZoom * zoom).coerceIn(1f, 3f)
                 }
             },
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -502,6 +502,7 @@ private fun SimpleLineChart(
             )
         }
 
+        val pointSize = if (sorted.size > 100) 1f else if (sorted.size > 30) 4f else 7f
         // Points
         repeat(seriesCount) { seriesIdx ->
             for (m in sorted) {
@@ -510,12 +511,12 @@ private fun SimpleLineChart(
                 val cy = yAtValue(v)
                 drawCircle(
                     color = colors[seriesIdx % colors.size],
-                    radius = 7f,
+                    radius = pointSize,
                     center = Offset(cx, cy),
                 )
                 drawCircle(
                     color = plotColor,
-                    radius = 7f,
+                    radius = pointSize,
                     center = Offset(cx, cy),
                     style = Stroke(width = 1.5f),
                 )
