@@ -54,7 +54,7 @@ fun AccountAvatar(
         Text(
             text = initials.ifBlank { initialsFallback },
             color = contentColor,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.titleMedium,
 
             )
     }
