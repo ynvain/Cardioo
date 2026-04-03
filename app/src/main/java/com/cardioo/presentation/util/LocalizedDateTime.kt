@@ -11,12 +11,6 @@ import java.util.Locale
 fun zoned(epochMillis: Long): ZonedDateTime =
     Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault())
 
-/** Formats date/time using the device locale (follows system language). */
-fun formatLocalizedDateTime(epochMillis: Long): String {
-    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-        .withLocale(Locale.getDefault())
-        .format(zoned(epochMillis))
-}
 
 fun formatLocalizedDate(epochMillis: Long): String =
     DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
@@ -28,9 +22,15 @@ fun formatLocalizedTime(epochMillis: Long): String =
         .withLocale(Locale.getDefault())
         .format(zoned(epochMillis))
 
-fun formatLocalizedDateWithoutYear(epochMillis: Long): String =
-    DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
+fun formatLocalizedDateWithoutYear(epochMillis: Long): String {
+    val localizedDate = DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
         .format(zoned(epochMillis))
+    //remove trailing dot in localized string
+    return if (localizedDate.endsWith(".")) localizedDate.substring(
+        0, localizedDate.length - 1
+    ) else localizedDate
+
+}
 
 fun formatLocalizedDayOfWeek(epochMillis: Long): String =
     zoned(epochMillis).dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
