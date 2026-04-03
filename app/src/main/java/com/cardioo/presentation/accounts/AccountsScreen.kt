@@ -1,5 +1,6 @@
 package com.cardioo.presentation.accounts
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,7 +52,10 @@ fun AccountsScreen(
                 title = { Text(stringResource(R.string.title_manage_accounts)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back)
+                        )
                     }
                 },
             )
@@ -65,7 +69,14 @@ fun AccountsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(state.accounts, key = { it.id }) { account ->
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            vm.switchTo(account.id)
+                            onEditCurrent()
+                        },
+                ) {
                     Column(
                         modifier = Modifier.padding(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -93,12 +104,6 @@ fun AccountsScreen(
                             OutlinedButton(onClick = { vm.switchTo(account.id) }) {
                                 Text(stringResource(R.string.action_switch))
                             }
-                            OutlinedButton(
-                                onClick = {
-                                    vm.switchTo(account.id)
-                                    onEditCurrent()
-                                },
-                            ) { Text(stringResource(R.string.action_edit_profile)) }
                             OutlinedButton(
                                 onClick = { accountPendingDeleteId = account.id },
                                 enabled = state.accounts.size > 1,

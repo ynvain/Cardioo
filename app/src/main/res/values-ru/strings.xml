@@ -94,7 +94,6 @@
     <string name="chart_showing_count">Записей: %1$d</string>
     <string name="account_current_suffix"> (текущий)</string>
     <string name="account_height_format">Рост: %1$s %2$s</string>
-    <string name="action_edit_profile">Изменить</string>
     <string name="delete_account_message">Удалить «%1$s» и все связанные измерения? Это действие нельзя отменить.</string>
     <string name="error_reading_not_found">Запись не найдена.</string>
     <string name="error_enter_systolic">Введите систолическое давление (50–250).</string>
