@@ -29,12 +29,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
+import com.cardioo.presentation.util.AccountAvatar
 import com.cardioo.presentation.util.heightUnitString
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,12 +61,15 @@ fun AccountsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(5.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(state.accounts, key = { it.id }) { account ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier = Modifier.padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
                             if (account.id == state.currentId) {
                                 account.name + stringResource(R.string.account_current_suffix)
@@ -78,7 +80,7 @@ fun AccountsScreen(
                         )
                         AccountAvatar(
                             name = account.name,
-                            background = avatarColor(account.name),
+                            size = 32.dp,
                         )
                         Text(
                             stringResource(
@@ -87,7 +89,7 @@ fun AccountsScreen(
                                 heightUnitString(account.heightUnit),
                             ),
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                             OutlinedButton(onClick = { vm.switchTo(account.id) }) {
                                 Text(stringResource(R.string.action_switch))
                             }
@@ -133,36 +135,3 @@ fun AccountsScreen(
     }
 }
 
-@Composable
-private fun AccountAvatar(
-    name: String,
-    background: Color,
-) {
-    val initialsFallback = stringResource(R.string.avatar_initials_fallback)
-    val initials = name.trim().split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
-    val contentColor = if (background.luminance() > 0.6f) Color.Black else Color.White
-    androidx.compose.material3.Surface(
-        color = background,
-        shape = androidx.compose.foundation.shape.CircleShape,
-    ) {
-        Text(
-            text = initials.ifBlank { initialsFallback },
-            color = contentColor,
-            modifier = androidx.compose.ui.Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelMedium,
-        )
-    }
-}
-
-private fun avatarColor(seed: String): Color {
-    val palette = listOf(
-        Color(0xFFFF6B8B),
-        Color(0xFF7E57C2),
-        Color(0xFF26A69A),
-        Color(0xFF42A5F5),
-        Color(0xFFFFA726),
-        Color(0xFFEC407A),
-    )
-    val idx = kotlin.math.abs(seed.hashCode()) % palette.size
-    return palette[idx]
-}

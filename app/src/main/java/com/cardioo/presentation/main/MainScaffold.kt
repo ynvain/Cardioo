@@ -1,14 +1,10 @@
 package com.cardioo.presentation.main
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Add
@@ -43,13 +39,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
@@ -57,6 +50,7 @@ import com.cardioo.presentation.chart.ChartScreen
 import com.cardioo.presentation.readings.ReadingsScreen
 import com.cardioo.presentation.readings.ReadingsViewModel
 import com.cardioo.presentation.statistics.StatisticsScreen
+import com.cardioo.presentation.util.AccountAvatar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +67,8 @@ fun MainScaffold(
     val accountState by vm.state.collectAsState()
     val readingsVm: ReadingsViewModel = hiltViewModel()
     val readingsState by readingsVm.state.collectAsState()
-    val currentAccount = accountState.accounts.firstOrNull { it.id == accountState.currentAccountId }
+    val currentAccount =
+        accountState.accounts.firstOrNull { it.id == accountState.currentAccountId }
     val defaultAccountName = stringResource(R.string.account_default_name)
     val currentName = currentAccount?.name ?: defaultAccountName
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -85,95 +80,101 @@ fun MainScaffold(
     Scaffold(
         topBar = {
             if (!isLandscape) {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            when (tab) {
-                                0 -> R.string.title_readings
-                                1 -> R.string.title_statistics
-                                else -> R.string.title_chart
-                            },
-                        ),
-                    )
-                },
-                actions = {
-                    if (tab == 0 && readingsState.selectedIds.isNotEmpty()) {
-                        IconButton(onClick = readingsVm::clearSelection) {
-                            Icon(
-                                Icons.Filled.Close,
-                                contentDescription = stringResource(R.string.cd_readings_cancel_selection),
-                            )
-                        }
-                        IconButton(onClick = readingsVm::deleteSelected) {
-                            Icon(
-                                Icons.Filled.Delete,
-                                contentDescription = stringResource(R.string.cd_readings_delete_selected),
-                            )
-                        }
-                    }
-                    IconButton(onClick = { menuExpanded = true }) {
-                        AccountAvatar(
-                            name = currentName,
-                            background = avatarColor(currentName),
-                            38.dp,
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(
+                                when (tab) {
+                                    0 -> R.string.title_readings
+                                    1 -> R.string.title_statistics
+                                    else -> R.string.title_chart
+                                },
+                            ),
                         )
-                    }
-                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.account_current_format, currentName)) },
-                            onClick = { menuExpanded = false },
-                            leadingIcon = {
-                                AccountAvatar(
-                                    name = currentName,
-                                    background = avatarColor(currentName),
-                                    36.dp,
-                                )
-                            },
-                        )
-                        accountState.accounts
-                            .filter { it.id != accountState.currentAccountId }
-                            .forEach { account ->
-                                DropdownMenuItem(
-                                    text = { Text(account.name) },
-                                    onClick = {
-                                        vm.switchAccount(account.id)
-                                        menuExpanded = false
-                                    },
-                                    leadingIcon = {
-                                        AccountAvatar(
-                                            name = account.name,
-                                            background = avatarColor(account.name),
-                                            30.dp,
-                                        )
-                                    },
-                                    modifier = Modifier.padding(start = 2.dp)
+                    },
+                    actions = {
+                        if (tab == 0 && readingsState.selectedIds.isNotEmpty()) {
+                            IconButton(onClick = readingsVm::clearSelection) {
+                                Icon(
+                                    Icons.Filled.Close,
+                                    contentDescription = stringResource(R.string.cd_readings_cancel_selection),
                                 )
                             }
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_create_account)) },
-                            onClick = {
-                                menuExpanded = false
-                                showCreateDialog = true
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_manage_accounts)) },
-                            onClick = {
-                                menuExpanded = false
-                                onOpenManageAccounts()
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.menu_edit_current_profile)) },
-                            onClick = {
-                                menuExpanded = false
-                                onOpenSettings()
-                            },
-                        )
-                    }
-                },
-            )
+                            IconButton(onClick = readingsVm::deleteSelected) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = stringResource(R.string.cd_readings_delete_selected),
+                                )
+                            }
+                        }
+                        IconButton(onClick = { menuExpanded = true }) {
+                            AccountAvatar(
+                                name = currentName,
+                                size = 38.dp,
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(
+                                            R.string.account_current_format,
+                                            currentName
+                                        )
+                                    )
+                                },
+                                onClick = { menuExpanded = false },
+                                leadingIcon = {
+                                    AccountAvatar(
+                                        name = currentName,
+                                        size = 36.dp,
+                                    )
+                                },
+                            )
+                            accountState.accounts
+                                .filter { it.id != accountState.currentAccountId }
+                                .forEach { account ->
+                                    DropdownMenuItem(
+                                        text = { Text(account.name) },
+                                        onClick = {
+                                            vm.switchAccount(account.id)
+                                            menuExpanded = false
+                                        },
+                                        leadingIcon = {
+                                            AccountAvatar(
+                                                name = account.name,
+                                                size = 30.dp,
+                                            )
+                                        },
+                                        modifier = Modifier.padding(start = 2.dp)
+                                    )
+                                }
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_create_account)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    showCreateDialog = true
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_manage_accounts)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenManageAccounts()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_edit_current_profile)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenSettings()
+                                },
+                            )
+                        }
+                    },
+                )
             }
         },
         floatingActionButton = {
@@ -291,45 +292,10 @@ fun MainScaffold(
                 ) { Text(stringResource(R.string.action_create)) }
             },
             dismissButton = {
-                TextButton(onClick = { showCreateDialog = false }) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = {
+                    showCreateDialog = false
+                }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
-}
-
-@Composable
-private fun AccountAvatar(
-    name: String,
-    background: Color,
-    size: Dp,
-) {
-    val initialsFallback = stringResource(R.string.avatar_initials_fallback)
-    val initials = name.trim().split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
-    val contentColor = if (background.luminance() > 0.6f) Color.Black else Color.White
-    Box(
-        modifier = Modifier
-            .size(size)
-            .background(background, shape = CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = initials.ifBlank { initialsFallback },
-            color = contentColor,
-            style = MaterialTheme.typography.labelMedium,
-
-            )
-    }
-}
-
-private fun avatarColor(seed: String): Color {
-    val palette = listOf(
-        Color(0xFFFF6B8B),
-        Color(0xFF7E57C2),
-        Color(0xFF26A69A),
-        Color(0xFF42A5F5),
-        Color(0xFFFFA726),
-        Color(0xFFEC407A),
-    )
-    val idx = kotlin.math.abs(seed.hashCode()) % palette.size
-    return palette[idx]
 }
