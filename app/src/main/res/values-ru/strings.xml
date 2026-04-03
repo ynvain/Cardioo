@@ -90,7 +90,7 @@
     <string name="chart_axis_date">Дата</string>
     <string name="chart_legend_systolic">Систолическое</string>
     <string name="chart_legend_diastolic">Диастолическое</string>
-    <string name="chart_showing_count">Записей: %1$d.</string>
+    <string name="chart_showing_count">Записей: %1$d</string>
     <string name="account_current_suffix"> (текущий)</string>
     <string name="account_height_format">Рост: %1$s %2$s</string>
     <string name="action_edit_profile">Изменить профиль</string>
