@@ -113,7 +113,7 @@ fun AccountsScreen(
     val accountToDelete = state.accounts.firstOrNull { it.id == accountPendingDeleteId }
     if (accountToDelete != null) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = { accountPendingDeleteId = null },
             title = { Text(stringResource(R.string.title_delete_account)) },
             text = {
                 Text(stringResource(R.string.delete_account_message, accountToDelete.name))
@@ -122,11 +122,12 @@ fun AccountsScreen(
                 Button(
                     onClick = {
                         vm.delete(accountToDelete.id)
+                        accountPendingDeleteId = null
                     },
                 ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { }) {
+                TextButton(onClick = { accountPendingDeleteId = null }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
