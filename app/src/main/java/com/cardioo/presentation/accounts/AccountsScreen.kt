@@ -113,7 +113,7 @@ fun AccountsScreen(
     val accountToDelete = state.accounts.firstOrNull { it.id == accountPendingDeleteId }
     if (accountToDelete != null) {
         AlertDialog(
-            onDismissRequest = { accountPendingDeleteId = null },
+            onDismissRequest = { },
             title = { Text(stringResource(R.string.title_delete_account)) },
             text = {
                 Text(stringResource(R.string.delete_account_message, accountToDelete.name))
