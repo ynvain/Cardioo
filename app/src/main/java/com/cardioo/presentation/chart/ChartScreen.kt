@@ -502,26 +502,30 @@ private fun SimpleLineChart(
             )
         }
 
-        val pointSize = if (sorted.size > 100) 1f else if (sorted.size > 30) 4f else 7f
-        // Points
-        repeat(seriesCount) { seriesIdx ->
-            for (m in sorted) {
-                val v = valuesFor(m)[seriesIdx]
-                val cx = xAtMillis(m.timestampEpochMillis)
-                val cy = yAtValue(v)
-                drawCircle(
-                    color = colors[seriesIdx % colors.size],
-                    radius = pointSize,
-                    center = Offset(cx, cy),
-                )
-                drawCircle(
-                    color = plotColor,
-                    radius = pointSize,
-                    center = Offset(cx, cy),
-                    style = Stroke(width = 1.5f),
-                )
+        if (sorted.size <= 70) {
+            // Points
+            val pointSize = if (sorted.size > 30) 4f else 7f
+
+            repeat(seriesCount) { seriesIdx ->
+                for (m in sorted) {
+                    val v = valuesFor(m)[seriesIdx]
+                    val cx = xAtMillis(m.timestampEpochMillis)
+                    val cy = yAtValue(v)
+                    drawCircle(
+                        color = colors[seriesIdx % colors.size],
+                        radius = pointSize,
+                        center = Offset(cx, cy),
+                    )
+                    drawCircle(
+                        color = plotColor,
+                        radius = pointSize,
+                        center = Offset(cx, cy),
+                        style = Stroke(width = 1.5f),
+                    )
+                }
             }
         }
+
     }
 }
 
