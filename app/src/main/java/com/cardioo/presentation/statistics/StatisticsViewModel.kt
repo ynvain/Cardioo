@@ -26,11 +26,19 @@ class StatisticsViewModel @Inject constructor(
     val state: StateFlow<State> =
         combine(observeMeasurements(), range) { measurements, r ->
             val filtered = filterByRange(measurements, r)
-            val summary = Summary.from(filtered)
+            val filteredPrev =
+                if (r != Range.AllTime) filterPrevByRange(measurements, r) else emptyList()
+            val summary = Summary.from(filtered, filteredPrev)
             val table = TableStats.from(filtered)
             val avgCategory =
                 if (summary.avgSystolic != null && summary.avgDiastolic != null) {
                     bpCategory(summary.avgSystolic, summary.avgDiastolic)
+                } else {
+                    null
+                }
+            val prevAvgCategory =
+                if (summary.prevAvgSystolic != null && summary.prevAvgDiastolic != null) {
+                    bpCategory(summary.prevAvgSystolic, summary.prevAvgDiastolic)
                 } else {
                     null
                 }
@@ -48,6 +56,7 @@ class StatisticsViewModel @Inject constructor(
                 summary = summary,
                 table = table,
                 averageBpCategory = avgCategory,
+                prevAverageBpCategory = prevAvgCategory,
                 weightDisplayUnit = weightUnit,
                 periodLabelRes = periodLabelRes,
             )
@@ -60,6 +69,7 @@ class StatisticsViewModel @Inject constructor(
         val summary: Summary = Summary(),
         val table: TableStats = TableStats(),
         val averageBpCategory: BpCategory? = null,
+        val prevAverageBpCategory: BpCategory? = null,
         val weightDisplayUnit: WeightUnit = WeightUnit.KG,
         val periodLabelRes: Int = com.cardioo.R.string.range_month,
     )
@@ -68,18 +78,29 @@ class StatisticsViewModel @Inject constructor(
         val latest: HealthMeasurement? = null,
         val avgSystolic: Int? = null,
         val avgDiastolic: Int? = null,
+        val prevAvgSystolic: Int? = null,
+        val prevAvgDiastolic: Int? = null,
         val count: Int = 0,
     ) {
         companion object {
-            fun from(list: List<HealthMeasurement>): Summary {
+            fun from(list: List<HealthMeasurement>, prevList: List<HealthMeasurement>): Summary {
                 val latest = list.firstOrNull()
                 if (list.isEmpty()) return Summary(latest = null, count = 0)
                 val avgSys = list.map { it.systolic }.average().toInt()
                 val avgDia = list.map { it.diastolic }.average().toInt()
+                var prevAvgSys: Int? = null
+                var prevAvgDia: Int? = null
+                if (prevList.isNotEmpty()) {
+                    prevAvgSys = prevList.map { it.systolic }.average().toInt()
+                    prevAvgDia = prevList.map { it.diastolic }.average().toInt()
+                }
+
                 return Summary(
                     latest = latest,
                     avgSystolic = avgSys,
                     avgDiastolic = avgDia,
+                    prevAvgSystolic = prevAvgSys,
+                    prevAvgDiastolic = prevAvgDia,
                     count = list.size,
                 )
             }
@@ -141,6 +162,24 @@ class StatisticsViewModel @Inject constructor(
         }
         val cutoff = ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
         return measurements.filter { it.timestampEpochMillis >= cutoff }
+    }
+
+    // Filter measurements from prev period
+    private fun filterPrevByRange(
+        measurements: List<HealthMeasurement>,
+        range: Range,
+    ): List<HealthMeasurement> {
+        if (range == Range.AllTime) return measurements
+        val days = when (range) {
+            Range.Week -> 7
+            Range.Month -> 30
+            Range.SixMonths -> 180
+            Range.Year -> 365
+            Range.AllTime -> Int.MAX_VALUE
+        }
+        val start = ZonedDateTime.now().minusDays(days.toLong()).toInstant().toEpochMilli()
+        val finish = ZonedDateTime.now().minusDays(2 * days.toLong()).toInstant().toEpochMilli()
+        return measurements.filter { it.timestampEpochMillis in finish..start }
     }
 }
 

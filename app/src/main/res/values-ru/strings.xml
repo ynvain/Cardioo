@@ -67,7 +67,8 @@
     <string name="format_weight_with_unit">%1$s %2$s</string>
     <string name="cd_export_csv">Экспорт CSV</string>
     <string name="statistics_no_readings">Пока нет записей.</string>
-    <string name="statistics_avg_bp_format">Среднее %1$d/%2$d</string>
+    <string name="statistics_avg_bp">Среднее АД</string>
+    <string name="statistics_prev_avg_bp">Предыдущее среднее</string>
     <string name="export_csv_success">CSV экспортирован</string>
     <string name="export_csv_failed">Не удалось экспортировать</string>
     <plurals name="entries_count">

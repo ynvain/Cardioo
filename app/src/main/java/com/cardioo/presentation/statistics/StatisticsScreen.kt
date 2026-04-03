@@ -163,14 +163,55 @@ fun StatisticsScreen(
                     ) {
                         Text(
                             stringResource(
-                                R.string.statistics_avg_bp_format,
-                                state.summary.avgSystolic!!,
-                                state.summary.avgDiastolic!!,
+                                R.string.statistics_avg_bp,
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                         )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            stringResource(
+                                R.string.format_bp_mmhg,
+                                state.summary.avgSystolic!!,
+                                state.summary.avgDiastolic!!,
+                            ),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
                         state.averageBpCategory?.let { category ->
                             ColoredCategoryText(category)
+                        }
+
+                    }
+                    if (state.summary.prevAvgSystolic != null && state.summary.prevAvgDiastolic != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                stringResource(
+                                    R.string.statistics_prev_avg_bp
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                stringResource(
+                                    R.string.format_bp_mmhg,
+                                    state.summary.prevAvgSystolic!!,
+                                    state.summary.prevAvgDiastolic!!,
+                                ),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            state.prevAverageBpCategory?.let { category ->
+                                ColoredCategoryText(category)
+                            }
                         }
                     }
                     Text(

@@ -68,7 +68,8 @@
     <string name="format_weight_with_unit">%1$s %2$s</string>
     <string name="cd_export_csv">Export CSV</string>
     <string name="statistics_no_readings">No readings yet.</string>
-    <string name="statistics_avg_bp_format">Average %1$d/%2$d</string>
+    <string name="statistics_avg_bp">Average BP</string>
+    <string name="statistics_prev_avg_bp">Previous Average</string>
     <string name="export_csv_success">Exported CSV</string>
     <string name="export_csv_failed">Export failed</string>
     <plurals name="entries_count">
