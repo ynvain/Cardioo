@@ -119,7 +119,7 @@
     <string name="stats_row_metric">Метрика</string>
     <string name="stats_col_min">Мин</string>
     <string name="stats_col_max">Макс</string>
-    <string name="stats_col_avg">Сред.</string>
+    <string name="stats_col_avg">Сред</string>
     <string name="stats_row_bp_sys">Систолическое</string>
     <string name="stats_row_bp_dia">Диастолическое</string>
     <string name="stats_row_pulse">Пульс</string>
