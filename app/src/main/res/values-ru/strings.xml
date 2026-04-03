@@ -58,7 +58,7 @@
     <string name="bp_category_elevated">Слегка повышенное</string>
     <string name="bp_category_hypertension_stage1">Гипертония 1 степени</string>
     <string name="bp_category_hypertension_stage2">Гипертония 2 степени</string>
-    <string name="bp_category_hypertensive_crisis">Гипертонический криз</string>
+    <string name="bp_category_hypertensive_crisis">Гипертонический кризис</string>
     <string name="gender_male">Мужской</string>
     <string name="gender_female">Женский</string>
     <string name="cd_measurement_menu">Меню</string>

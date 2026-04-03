@@ -93,7 +93,6 @@
     <string name="chart_showing_count">%1$d readings</string>
     <string name="account_current_suffix"> (current)</string>
     <string name="account_height_format">Height: %1$s %2$s</string>
-
     <string name="delete_account_message">Delete &quot;%1$s&quot; and all linked measurements? This cannot be undone.</string>
     <string name="csv_header" translatable="false">timestamp,systolic,diastolic,pulse,weight,weightUnit,notes\n</string>
     <string name="csv_default_filename" translatable="false">cardioo_readings.csv</string>
