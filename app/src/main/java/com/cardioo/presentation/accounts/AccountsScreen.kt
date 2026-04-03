@@ -122,12 +122,11 @@ fun AccountsScreen(
                 Button(
                     onClick = {
                         vm.delete(accountToDelete.id)
-                        accountPendingDeleteId = null
                     },
                 ) { Text(stringResource(R.string.action_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { accountPendingDeleteId = null }) {
+                TextButton(onClick = { }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
