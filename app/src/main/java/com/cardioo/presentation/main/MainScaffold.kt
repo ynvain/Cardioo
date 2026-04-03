@@ -272,7 +272,7 @@ fun MainScaffold(
 
     if (showCreateDialog) {
         AlertDialog(
-            onDismissRequest = { showCreateDialog = false },
+            onDismissRequest = { },
             title = { Text(stringResource(R.string.title_create_account)) },
             text = {
                 OutlinedTextField(
@@ -287,13 +287,11 @@ fun MainScaffold(
                     onClick = {
                         vm.createAccount(createName)
                         createName = ""
-                        showCreateDialog = false
                     },
                 ) { Text(stringResource(R.string.action_create)) }
             },
             dismissButton = {
                 TextButton(onClick = {
-                    showCreateDialog = false
                 }) { Text(stringResource(R.string.action_cancel)) }
             },
         )

@@ -22,7 +22,7 @@ import com.cardioo.domain.model.BpCategory
 
 @Composable
 fun ColoredCategoryText(category: BpCategory) {
-    val color = categoryColor(category);
+    val color = categoryColor(category)
     val contentColor = if (color.luminance() > 0.6f) Color.Black else Color.White
     Text(
         localizeBpCategory(category),
