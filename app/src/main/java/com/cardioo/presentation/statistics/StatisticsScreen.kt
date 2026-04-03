@@ -39,8 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -48,8 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cardioo.R
 import com.cardioo.domain.model.HealthMeasurement
-import com.cardioo.presentation.util.categoryColor
-import com.cardioo.presentation.util.localizeBpCategory
+import com.cardioo.presentation.util.ColoredCategoryText
 import com.cardioo.presentation.util.weightUnitString
 import kotlinx.coroutines.launch
 
@@ -164,24 +161,16 @@ fun StatisticsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                    Text(
-                        stringResource(
-                            R.string.statistics_avg_bp_format,
-                            state.summary.avgSystolic!!,
-                            state.summary.avgDiastolic!!,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    state.averageBpCategory?.let { category ->
                         Text(
-                            localizeBpCategory(category),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(categoryColor(category))
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFFFFFFFF),
+                            stringResource(
+                                R.string.statistics_avg_bp_format,
+                                state.summary.avgSystolic!!,
+                                state.summary.avgDiastolic!!,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
                         )
+                        state.averageBpCategory?.let { category ->
+                            ColoredCategoryText(category)
                         }
                     }
                     Text(
