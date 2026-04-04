@@ -163,6 +163,7 @@ private fun MeasurementCard(
 ) {
     val category = bpCategory(measurement.systolic, measurement.diastolic)
     val currentYear = ZonedDateTime.now().year
+    val year = getYear(measurement.timestampEpochMillis)
     val shape = RoundedCornerShape(12.dp)
 
     Card(
@@ -186,11 +187,18 @@ private fun MeasurementCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            val spacing = if (year == currentYear) 4.dp else 1.dp
+            val verticalPadding = if (year == currentYear) 5.dp else 3.dp
             Column(
                 modifier = Modifier
-                    .padding(start = 5.dp, top = 5.dp, end = 10.dp, bottom = 5.dp)
+                    .padding(
+                        start = 5.dp,
+                        top = verticalPadding,
+                        end = 10.dp,
+                        bottom = verticalPadding
+                    )
                     .weight(20F),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(spacing),
                 horizontalAlignment = Alignment.End,
             ) {
                 Text(
@@ -203,7 +211,6 @@ private fun MeasurementCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                val year = getYear(measurement.timestampEpochMillis);
                 if (year != currentYear) {
                     Text(
                         year.toString(),
