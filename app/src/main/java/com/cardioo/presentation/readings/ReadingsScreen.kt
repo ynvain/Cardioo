@@ -235,7 +235,7 @@ private fun MeasurementCard(
                 modifier = Modifier
                     .padding(start = 15.dp, top = 10.dp, end = 10.dp, bottom = 5.dp)
                     .weight(80F),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(
                     modifier = Modifier
