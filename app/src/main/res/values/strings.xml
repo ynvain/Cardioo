@@ -43,8 +43,6 @@
     <string name="label_dob_format">DOB: %1$s</string>
     <string name="label_gender_format">Gender: %1$s</string>
     <string name="settings_section_profile">Profile</string>
-    <string name="settings_section_reminders">Reminders</string>
-    <string name="settings_reminders_hint">Optional reminders can be added later without extra permissions.</string>
     <string name="label_systolic">Systolic (50–250)</string>
     <string name="label_diastolic">Diastolic (30–150)</string>
     <string name="label_pulse_optional">Pulse (optional, 40–200 bpm)</string>
