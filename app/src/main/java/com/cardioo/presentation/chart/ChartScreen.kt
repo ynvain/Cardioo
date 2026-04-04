@@ -5,6 +5,7 @@ import android.graphics.Paint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -119,6 +120,21 @@ fun ChartScreen(
                 detectTransformGestures { _, _, zoom, _ ->
                     chartZoom = (chartZoom * zoom).coerceIn(1f, 3f)
                 }
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = { _ ->
+                        if (chartZoom < 1.5f)
+                            chartZoom = 1.5f
+                        else
+                            if (chartZoom < 3f)
+                                chartZoom = 3f
+                            else
+                                if (chartZoom == 3f)
+                                    chartZoom = 1f
+                    }
+
+                )
             },
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -165,29 +181,36 @@ fun ChartScreen(
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.range_week)) },
                         onClick = {
-                            vm.setRange(ChartViewModel.Range.Week); rangeExpanded = false
+                            vm.setRange(ChartViewModel.Range.Week); rangeExpanded =
+                            false
                         },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.range_month)) },
                         onClick = {
-                            vm.setRange(ChartViewModel.Range.Month); rangeExpanded = false
+                            vm.setRange(ChartViewModel.Range.Month); rangeExpanded =
+                            false
                         },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.range_six_months)) },
                         onClick = {
-                            vm.setRange(ChartViewModel.Range.SixMonths); rangeExpanded = false
+                            vm.setRange(ChartViewModel.Range.SixMonths); rangeExpanded =
+                            false
                         },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.range_year)) },
-                        onClick = { vm.setRange(ChartViewModel.Range.Year); rangeExpanded = false },
+                        onClick = {
+                            vm.setRange(ChartViewModel.Range.Year); rangeExpanded =
+                            false
+                        },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.range_all_time)) },
                         onClick = {
-                            vm.setRange(ChartViewModel.Range.AllTime); rangeExpanded = false
+                            vm.setRange(ChartViewModel.Range.AllTime); rangeExpanded =
+                            false
                         },
                     )
                 }
@@ -208,7 +231,10 @@ fun ChartScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 10.dp)
         ) {
-            Text("x${"%.1f".format(chartZoom)}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "x${"%.1f".format(chartZoom)}",
+                style = MaterialTheme.typography.bodySmall
+            )
             if (state.metric == ChartViewModel.Metric.Bp) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -290,7 +316,11 @@ private fun SimpleLineChart(
 
     fun valuesFor(m: HealthMeasurement): List<Double> =
         when (metric) {
-            ChartViewModel.Metric.Bp -> listOf(m.systolic.toDouble(), m.diastolic.toDouble())
+            ChartViewModel.Metric.Bp -> listOf(
+                m.systolic.toDouble(),
+                m.diastolic.toDouble()
+            )
+
             ChartViewModel.Metric.Pulse -> listOf(m.pulse!!.toDouble())
             ChartViewModel.Metric.Weight -> {
                 val w = m.weight!!
