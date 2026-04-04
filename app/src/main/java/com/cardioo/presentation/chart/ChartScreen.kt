@@ -107,11 +107,6 @@ fun ChartScreen(
         return toggleButtonBorder(state.metric == buttonMetric)
     }
 
-    @Composable
-    fun toggleRangeBorder(buttonRange: ChartViewModel.Range): BorderStroke {
-        return toggleButtonBorder(state.range == buttonRange)
-    }
-
     var rangeExpanded by remember { mutableStateOf(false) }
     var chartZoom by remember(state.metric, state.range) { mutableFloatStateOf(1f) }
 
@@ -119,7 +114,7 @@ fun ChartScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-            .padding(5.dp)
+            .padding(start = 2.dp, top = 5.dp, end = 5.dp, bottom = 5.dp)
             .pointerInput(state.metric, state.range) {
                 detectTransformGestures { _, _, zoom, _ ->
                     chartZoom = (chartZoom * zoom).coerceIn(1f, 3f)
@@ -253,47 +248,23 @@ fun ChartScreen(
             )
         }
 
-        val chartScroll = rememberScrollState()
+        SimpleLineChart(
+            metric = state.metric,
+            range = state.range,
+            measurements = chartData,
+            weightDisplayUnit = weightDisplayUnit,
+            chartZoom = chartZoom,
+            yAxisLabel = yAxisLabel,
+            axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+            plotColor = MaterialTheme.colorScheme.onSurface,
+        )
 
-        val isLandscape =
-            LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-        var chartContainerWidth by remember { mutableStateOf(370.dp) }
-        if (isLandscape)
-            chartContainerWidth = 750.dp
-
-        Box(
-            modifier = Modifier
-                .width(chartContainerWidth)
-                .fillMaxHeight()
-                .then(
-                    if (chartZoom > 1f) {
-                        Modifier.horizontalScroll(chartScroll)
-                    } else {
-                        Modifier
-                    }
-                )
-        ) {
-            SimpleLineChart(
-                modifier = Modifier
-                    .height(370.dp)
-                    .width(chartContainerWidth * chartZoom),
-                metric = state.metric,
-                range = state.range,
-                measurements = chartData,
-                weightDisplayUnit = weightDisplayUnit,
-                chartZoom = chartZoom,
-                yAxisLabel = yAxisLabel,
-                axisColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
-                plotColor = MaterialTheme.colorScheme.onSurface,
-            )
-        }
     }
 }
 
 @Composable
 private fun SimpleLineChart(
-    modifier: Modifier,
     metric: ChartViewModel.Metric,
     range: ChartViewModel.Range,
     measurements: List<HealthMeasurement>,
@@ -304,6 +275,13 @@ private fun SimpleLineChart(
     gridColor: Color,
     plotColor: Color,
 ) {
+
+    val chartScroll = rememberScrollState()
+    val isLandscape =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    var chartContainerWidth by remember { mutableStateOf(370.dp) }
+    if (isLandscape)
+        chartContainerWidth = 750.dp
     val sorted = measurements.sortedBy { it.timestampEpochMillis }
     val zone = ZoneId.systemDefault()
     val locale = Locale.getDefault()
@@ -370,164 +348,213 @@ private fun SimpleLineChart(
     val stroke = Stroke(width = 4f, cap = StrokeCap.Round)
     val axisArgb = axisColor.toArgb()
 
-    Canvas(modifier = modifier) {
-        val densityScale = density
-        val labelPx = 11f * densityScale
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = labelPx
-            color = axisArgb
-        }
-        val paintSmall = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 10f * densityScale
-            color = axisArgb
-        }
+    Row {
+        Canvas(
+            modifier = Modifier
+                .height(370.dp)
 
-        val reserveLeft = 35f * densityScale
-        val reserveBottom = 25f * densityScale
-        val reserveRight = 12f * densityScale
-        val reserveTop = 12 * densityScale
-
-        val plotLeft = reserveLeft
-        val plotRight = size.width - reserveRight
-        val plotTop = reserveTop
-        val plotBottom = size.height - reserveBottom
-        val plotW = plotRight - plotLeft
-        val plotH = plotBottom - plotTop
-
-        fun xAtMillis(millis: Long): Float {
-            val t = ((millis - plotMinX) / xSpan).toFloat().coerceIn(0f, 1f)
-            return plotLeft + plotW * t
-        }
-
-        fun yAtValue(v: Double): Float {
-            val t = ((v - minY) / (maxY - minY)).toFloat().coerceIn(0f, 1f)
-            return plotBottom - plotH * t
-        }
-
-        // Grid (horizontal)
-        for (yt in yTicks) {
-            val yy = yAtValue(yt)
-            drawLine(
-                color = gridColor,
-                start = Offset(plotLeft, yy),
-                end = Offset(plotRight, yy),
-                strokeWidth = 1f,
-            )
-        }
-        // Grid (vertical)
-        for (xm in xTicksMillis) {
-            val xx = xAtMillis(xm)
-            drawLine(
-                color = gridColor,
-                start = Offset(xx, plotTop),
-                end = Offset(xx, plotBottom),
-                strokeWidth = 1f,
-            )
-        }
-
-        // Y axis
-        drawLine(
-            color = axisColor,
-            start = Offset(plotLeft, plotTop),
-            end = Offset(plotLeft, plotBottom),
-            strokeWidth = 2f,
-        )
-        // X axis
-        drawLine(
-            color = axisColor,
-            start = Offset(plotLeft, plotBottom),
-            end = Offset(plotRight, plotBottom),
-            strokeWidth = 2f,
-        )
-
-        paint.textAlign = Paint.Align.RIGHT
-        for (yt in yTicks) {
-            val yy = yAtValue(yt)
-            val label = if (metric == ChartViewModel.Metric.Weight) {
-                String.format(Locale.US, "%.1f", yt)
-            } else {
-                String.format(Locale.US, "%.0f", yt)
+        ) {
+            val densityScale = density
+            val labelPx = 11f * densityScale
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = labelPx
+                color = axisArgb
             }
-            drawContext.canvas.nativeCanvas.drawText(
-                label,
-                plotLeft - 6f * densityScale,
-                yy + labelPx * 0.35f,
-                paint
-            )
-        }
+            val paintSmall = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = 10f * densityScale
+                color = axisArgb
+            }
 
-        paint.textAlign = Paint.Align.CENTER
-        for (xm in xTicksMillis) {
-            val xx = xAtMillis(xm)
-            val date = Instant.ofEpochMilli(xm).atZone(zone);
-            val sameYear = date.year == ZonedDateTime.now().year
-            val label = date.format(if (sameYear) dateFormatterWithoutYear else dateFormatter)
+            val reserveLeft = 35f * densityScale
+            val reserveBottom = 25f * densityScale
+            val reserveTop = 12 * densityScale
+
+            val plotBottom = size.height - reserveBottom
+
+            val plotH = plotBottom - reserveTop
+
+
+            fun yAtValue(v: Double): Float {
+                val t = ((v - minY) / (maxY - minY)).toFloat().coerceIn(0f, 1f)
+                return plotBottom - plotH * t
+            }
+            // Y axis
+            drawLine(
+                color = axisColor,
+                start = Offset(reserveLeft, reserveTop),
+                end = Offset(reserveLeft, plotBottom),
+                strokeWidth = 2f,
+            )
+
+            paint.textAlign = Paint.Align.RIGHT
+            for (yt in yTicks) {
+                val yy = yAtValue(yt)
+                val label = if (metric == ChartViewModel.Metric.Weight) {
+                    String.format(Locale.US, "%.1f", yt)
+                } else {
+                    String.format(Locale.US, "%.0f", yt)
+                }
+                drawContext.canvas.nativeCanvas.drawText(
+                    label,
+                    reserveLeft - 6f * densityScale,
+                    yy + labelPx * 0.35f,
+                    paint
+                )
+            }
+            // Y-axis unit (rotated would be ideal; short label above chart)
+            paint.textAlign = Paint.Align.LEFT
             drawContext.canvas.nativeCanvas.drawText(
-                label,
-                xx,
-                plotBottom + 16f * densityScale,
+                yAxisLabel,
+                reserveLeft,
+                reserveTop,
                 paintSmall
             )
         }
+        Box(
+            modifier = Modifier
+                .width(chartContainerWidth)
+                .fillMaxHeight()
+                .then(
+                    if (chartZoom > 1f) {
+                        Modifier.horizontalScroll(chartScroll)
+                    } else {
+                        Modifier
+                    }
+                )
+        ) {
+            Canvas(
+                modifier = Modifier
+                    .height(370.dp)
+                    .width(chartContainerWidth * chartZoom),
+            ) {
+                val densityScale = density
+                val labelPx = 11f * densityScale
+                val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    textSize = labelPx
+                    color = axisArgb
+                }
+                val paintSmall = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    textSize = 10f * densityScale
+                    color = axisArgb
+                }
 
-        // Y-axis unit (rotated would be ideal; short label above chart)
-        paint.textAlign = Paint.Align.LEFT
-        drawContext.canvas.nativeCanvas.drawText(
-            yAxisLabel,
-            plotLeft,
-            plotTop,
-            paintSmall
-        )
+                val reserveLeft = 35f * densityScale
+                val reserveBottom = 25f * densityScale
+                val reserveRight = 12f * densityScale
+                val reserveTop = 12 * densityScale
 
-        val seriesCount = if (metric == ChartViewModel.Metric.Bp) 2 else 1
+                val plotLeft = reserveLeft
+                val plotRight = size.width - reserveRight
+                val plotTop = reserveTop
+                val plotBottom = size.height - reserveBottom
+                val plotW = plotRight - plotLeft
+                val plotH = plotBottom - plotTop
 
+                fun xAtMillis(millis: Long): Float {
+                    val t = ((millis - plotMinX) / xSpan).toFloat().coerceIn(0f, 1f)
+                    return plotLeft + plotW * t
+                }
 
-        val colors = when (metric) {
-            ChartViewModel.Metric.Bp -> listOf(PinkPrimary, Color.Cyan)
-            ChartViewModel.Metric.Pulse -> listOf(PinkAccent)
-            ChartViewModel.Metric.Weight -> listOf(Orange)
-        }
+                fun yAtValue(v: Double): Float {
+                    val t = ((v - minY) / (maxY - minY)).toFloat().coerceIn(0f, 1f)
+                    return plotBottom - plotH * t
+                }
 
-        repeat(seriesCount) { seriesIdx ->
-            val path = Path()
-            sorted.forEachIndexed { i, m ->
-                val v = valuesFor(m)[seriesIdx]
-                val pt = Offset(xAtMillis(m.timestampEpochMillis), yAtValue(v))
-                if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
-            }
-            drawPath(
-                path = path,
-                color = colors[seriesIdx % colors.size],
-                style = stroke,
-            )
-        }
+                // Grid (horizontal)
+                for (yt in yTicks) {
+                    val yy = yAtValue(yt)
+                    drawLine(
+                        color = gridColor,
+                        start = Offset(plotLeft, yy),
+                        end = Offset(plotRight, yy),
+                        strokeWidth = 1f,
+                    )
+                }
+                // Grid (vertical)
+                for (xm in xTicksMillis) {
+                    val xx = xAtMillis(xm)
+                    drawLine(
+                        color = gridColor,
+                        start = Offset(xx, plotTop),
+                        end = Offset(xx, plotBottom),
+                        strokeWidth = 1f,
+                    )
+                }
 
-        if (sorted.size <= 70) {
-            // Points
-            val pointSize = if (sorted.size > 30) 4f else 7f
+                // X axis
+                drawLine(
+                    color = axisColor,
+                    start = Offset(plotLeft, plotBottom),
+                    end = Offset(plotRight, plotBottom),
+                    strokeWidth = 2f,
+                )
 
-            repeat(seriesCount) { seriesIdx ->
-                for (m in sorted) {
-                    val v = valuesFor(m)[seriesIdx]
-                    val cx = xAtMillis(m.timestampEpochMillis)
-                    val cy = yAtValue(v)
-                    drawCircle(
+                paint.textAlign = Paint.Align.CENTER
+                for (xm in xTicksMillis) {
+                    val xx = xAtMillis(xm)
+                    val date = Instant.ofEpochMilli(xm).atZone(zone);
+                    val sameYear = date.year == ZonedDateTime.now().year
+                    val label =
+                        date.format(if (sameYear) dateFormatterWithoutYear else dateFormatter)
+                    drawContext.canvas.nativeCanvas.drawText(
+                        label,
+                        xx,
+                        plotBottom + 16f * densityScale,
+                        paintSmall
+                    )
+                }
+
+                val seriesCount = if (metric == ChartViewModel.Metric.Bp) 2 else 1
+
+                val colors = when (metric) {
+                    ChartViewModel.Metric.Bp -> listOf(PinkPrimary, Color.Cyan)
+                    ChartViewModel.Metric.Pulse -> listOf(PinkAccent)
+                    ChartViewModel.Metric.Weight -> listOf(Orange)
+                }
+
+                repeat(seriesCount) { seriesIdx ->
+                    val path = Path()
+                    sorted.forEachIndexed { i, m ->
+                        val v = valuesFor(m)[seriesIdx]
+                        val pt = Offset(xAtMillis(m.timestampEpochMillis), yAtValue(v))
+                        if (i == 0) path.moveTo(pt.x, pt.y) else path.lineTo(pt.x, pt.y)
+                    }
+                    drawPath(
+                        path = path,
                         color = colors[seriesIdx % colors.size],
-                        radius = pointSize,
-                        center = Offset(cx, cy),
+                        style = stroke,
                     )
-                    drawCircle(
-                        color = plotColor,
-                        radius = pointSize,
-                        center = Offset(cx, cy),
-                        style = Stroke(width = 1.5f),
-                    )
+                }
+
+                if (sorted.size <= 70) {
+                    // Points
+                    val pointSize = if (sorted.size > 30) 4f else 7f
+
+                    repeat(seriesCount) { seriesIdx ->
+                        for (m in sorted) {
+                            val v = valuesFor(m)[seriesIdx]
+                            val cx = xAtMillis(m.timestampEpochMillis)
+                            val cy = yAtValue(v)
+                            drawCircle(
+                                color = colors[seriesIdx % colors.size],
+                                radius = pointSize,
+                                center = Offset(cx, cy),
+                            )
+                            drawCircle(
+                                color = plotColor,
+                                radius = pointSize,
+                                center = Offset(cx, cy),
+                                style = Stroke(width = 1.5f),
+                            )
+                        }
+                    }
                 }
             }
         }
 
     }
 }
+
 
 private fun dateTimeFormatterForRange(
     range: ChartViewModel.Range,
