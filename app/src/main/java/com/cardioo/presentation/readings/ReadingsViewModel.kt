@@ -46,6 +46,7 @@ class ReadingsViewModel @Inject constructor(
     private val totalCount = MutableStateFlow(0)
     private val refreshing = MutableStateFlow(false)
     private val loadingMore = MutableStateFlow(false)
+    val newAdded = MutableStateFlow(false)
     private val selectedIds = MutableStateFlow<Set<Long>>(emptySet())
     private var activeAccountId: Long? = null
 
@@ -226,6 +227,7 @@ class ReadingsViewModel @Inject constructor(
         if (activeAccountId == null) return
         if (refreshing.value) return
         loadingMore.value = true
+        newAdded.value = true;
         try {
             val first = getMeasurementsPage(limit = pageSize)
             val merged = (first + measurements.value).distinctBy { it.id }
@@ -233,5 +235,9 @@ class ReadingsViewModel @Inject constructor(
         } finally {
             loadingMore.value = false
         }
+    }
+
+    fun resetAddedNewFlag() {
+        newAdded.value = false
     }
 }

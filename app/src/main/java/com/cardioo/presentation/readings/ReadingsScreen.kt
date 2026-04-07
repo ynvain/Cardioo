@@ -69,6 +69,14 @@ fun ReadingsScreen(
         onRefresh = vm::refresh,
     )
 
+
+    LaunchedEffect(vm.newAdded) {
+        if (vm.newAdded.value) {
+            listState.animateScrollToItem(0)
+            vm.resetAddedNewFlag()
+        }
+    }
+
     // Infinite scroll: `snapshotFlow` turns LazyList scroll state into a cold Flow. We collect it
     // inside `LaunchedEffect` so work runs in a coroutine (collect is suspending) and restarts when
     // keys like list size change, so thresholds stay correct after loads/refreshes.
