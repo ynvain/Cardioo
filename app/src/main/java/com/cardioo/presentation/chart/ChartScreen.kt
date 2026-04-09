@@ -121,7 +121,7 @@ fun ChartScreen(
                     chartZoom = (chartZoom * zoom).coerceIn(1f, 3f)
                 }
             }
-            .pointerInput(Unit) {
+            .pointerInput(state.metric, state.range) {
                 detectTapGestures(
                     onDoubleTap = { _ ->
                         if (chartZoom < 1.5f)
