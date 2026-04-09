@@ -359,6 +359,7 @@ private fun SimpleLineChart(
             add(yTick)
             yTick += yStep
         }
+        if (size > 5) removeAt(0)
     }.ifEmpty { listOf(minY, maxY) }
 
     val xTickCountByPeriod = when (range) {
