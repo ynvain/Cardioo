@@ -58,6 +58,7 @@ import com.cardioo.presentation.theme.PinkPrimary
 import com.cardioo.presentation.util.Orange
 import com.cardioo.presentation.util.toggleButtonBorder
 import com.cardioo.presentation.util.weightUnitString
+import java.text.DecimalFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -384,6 +385,9 @@ private fun SimpleLineChart(
                 .height(370.dp)
 
         ) {
+            val format = if (metric == ChartViewModel.Metric.Weight) DecimalFormat("#.#")
+            else DecimalFormat("#")
+
             val densityScale = density
             val labelPx = 11f * densityScale
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -419,11 +423,7 @@ private fun SimpleLineChart(
             paint.textAlign = Paint.Align.RIGHT
             for (yt in yTicks) {
                 val yy = yAtValue(yt)
-                val label = if (metric == ChartViewModel.Metric.Weight) {
-                    String.format(Locale.US, "%.1f", yt)
-                } else {
-                    String.format(Locale.US, "%.0f", yt)
-                }
+                val label = format.format(yt)
                 drawContext.canvas.nativeCanvas.drawText(
                     label,
                     reserveLeft - 6f * densityScale,
